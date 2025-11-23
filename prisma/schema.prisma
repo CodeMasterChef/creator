@@ -20,9 +20,11 @@ model User {
 model Article {
   id          String   @id @default(cuid())
   title       String
+  slug        String?  @unique
   summary     String
   content     String
   image       String
+  tags        String?  // Comma-separated tags
   date        DateTime @default(now())
   author      String
   source      String?

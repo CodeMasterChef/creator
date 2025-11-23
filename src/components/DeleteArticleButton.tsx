@@ -38,7 +38,7 @@ export default function DeleteArticleButton({ articleId, articleTitle, onDelete 
     <button
       onClick={handleDelete}
       disabled={isDeleting}
-      className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
+      className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 disabled:bg-red-400 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 disabled:hover:scale-100"
       title="Xóa bài viết"
     >
       <Trash2 className="w-3 h-3" />

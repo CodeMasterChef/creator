@@ -2,6 +2,7 @@ import Parser from 'rss-parser';
 import { prisma } from './prisma';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getLatestCoinDeskArticles, scrapeCoinDeskArticle } from './scraper';
+import { slugify } from './slugify';
 
 const parser = new Parser();
 const RSS_SOURCES = [
@@ -223,12 +224,23 @@ export async function generateAndSaveArticle() {
         };
         const summaryVi = stripHtml(contentVi).slice(0, 200) + "...";
 
+        // Extract potential tags from title
+        const extractTags = (title: string): string => {
+            const keywords = ['Bitcoin', 'Ethereum', 'BTC', 'ETH', 'DeFi', 'NFT', 'Crypto', 'Blockchain', 'Web3', 'Altcoin'];
+            const foundTags = keywords.filter(keyword => 
+                title.toLowerCase().includes(keyword.toLowerCase())
+            );
+            return foundTags.join(', ');
+        };
+
         const article = await prisma.article.create({
             data: {
                 title: titleVi,
+                slug: slugify(titleVi),
                 summary: summaryVi,
                 content: content,
                 image: image,
+                tags: extractTags(titleVi),
                 author: "Tường An",
                 source: "CoinDesk",
                 sourceUrl: scrapedArticle.url,

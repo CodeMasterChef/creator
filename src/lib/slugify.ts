@@ -2,58 +2,53 @@
  * Convert Vietnamese text to URL-friendly slug
  */
 export function slugify(text: string): string {
-  // Convert to lowercase
-  let slug = text.toLowerCase();
+    // Convert to lowercase
+    let slug = text.toLowerCase();
 
-  // Replace Vietnamese characters
-  const vietnameseMap: Record<string, string> = {
-    'à': 'a', 'á': 'a', 'ạ': 'a', 'ả': 'a', 'ã': 'a',
-    'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ậ': 'a', 'ẩ': 'a', 'ẫ': 'a',
-    'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ặ': 'a', 'ẳ': 'a', 'ẵ': 'a',
-    'è': 'e', 'é': 'e', 'ẹ': 'e', 'ẻ': 'e', 'ẽ': 'e',
-    'ê': 'e', 'ề': 'e', 'ế': 'e', 'ệ': 'e', 'ể': 'e', 'ễ': 'e',
-    'ì': 'i', 'í': 'i', 'ị': 'i', 'ỉ': 'i', 'ĩ': 'i',
-    'ò': 'o', 'ó': 'o', 'ọ': 'o', 'ỏ': 'o', 'õ': 'o',
-    'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ộ': 'o', 'ổ': 'o', 'ỗ': 'o',
-    'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ợ': 'o', 'ở': 'o', 'ỡ': 'o',
-    'ù': 'u', 'ú': 'u', 'ụ': 'u', 'ủ': 'u', 'ũ': 'u',
-    'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ự': 'u', 'ử': 'u', 'ữ': 'u',
-    'ỳ': 'y', 'ý': 'y', 'ỵ': 'y', 'ỷ': 'y', 'ỹ': 'y',
-    'đ': 'd',
-  };
+    // Replace Vietnamese characters with Latin equivalents
+    const vietnameseMap: { [key: string]: string } = {
+        'à': 'a', 'á': 'a', 'ả': 'a', 'ã': 'a', 'ạ': 'a',
+        'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ẳ': 'a', 'ẵ': 'a', 'ặ': 'a',
+        'â': 'a', 'ầ': 'a', 'ấ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ậ': 'a',
+        'đ': 'd',
+        'è': 'e', 'é': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ẹ': 'e',
+        'ê': 'e', 'ề': 'e', 'ế': 'e', 'ể': 'e', 'ễ': 'e', 'ệ': 'e',
+        'ì': 'i', 'í': 'i', 'ỉ': 'i', 'ĩ': 'i', 'ị': 'i',
+        'ò': 'o', 'ó': 'o', 'ỏ': 'o', 'õ': 'o', 'ọ': 'o',
+        'ô': 'o', 'ồ': 'o', 'ố': 'o', 'ổ': 'o', 'ỗ': 'o', 'ộ': 'o',
+        'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ở': 'o', 'ỡ': 'o', 'ợ': 'o',
+        'ù': 'u', 'ú': 'u', 'ủ': 'u', 'ũ': 'u', 'ụ': 'u',
+        'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ử': 'u', 'ữ': 'u', 'ự': 'u',
+        'ỳ': 'y', 'ý': 'y', 'ỷ': 'y', 'ỹ': 'y', 'ỵ': 'y',
+    };
 
-  // Replace Vietnamese characters
-  for (const [vietnamese, latin] of Object.entries(vietnameseMap)) {
-    slug = slug.replace(new RegExp(vietnamese, 'g'), latin);
-  }
+    // Replace Vietnamese characters
+    slug = slug.split('').map(char => vietnameseMap[char] || char).join('');
 
-  // Remove special characters, keep only alphanumeric and spaces
-  slug = slug.replace(/[^a-z0-9\s-]/g, '');
+    // Replace special characters and spaces with hyphens
+    slug = slug
+        .replace(/[^\w\s-]/g, '') // Remove special chars except spaces and hyphens
+        .trim()
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-'); // Replace multiple hyphens with single hyphen
 
-  // Replace multiple spaces or hyphens with single hyphen
-  slug = slug.replace(/[\s-]+/g, '-');
-
-  // Remove leading/trailing hyphens
-  slug = slug.replace(/^-+|-+$/g, '');
-
-  // Limit length to 60 characters
-  if (slug.length > 60) {
-    slug = slug.substring(0, 60);
-    // Remove trailing incomplete word
-    const lastHyphen = slug.lastIndexOf('-');
-    if (lastHyphen > 0) {
-      slug = slug.substring(0, lastHyphen);
+    // Add random suffix to ensure uniqueness
+    const timestamp = Date.now().toString(36); // Convert timestamp to base36
+    const random = Math.random().toString(36).substring(2, 5); // Random 3 chars
+    
+    // Limit slug length and add unique suffix
+    const maxLength = 50;
+    if (slug.length > maxLength) {
+        slug = slug.substring(0, maxLength).replace(/-+$/, ''); // Remove trailing hyphen
     }
-  }
-
-  return slug || 'article'; // Fallback if slug is empty
+    
+    return `${slug}-${timestamp}${random}`;
 }
 
 /**
  * Generate article URL with slug and id
  */
 export function generateArticleUrl(title: string, id: string): string {
-  const slug = slugify(title);
-  return `/article/${slug}?id=${id}`;
+    const slug = slugify(title);
+    return `/article/${slug}?id=${id}`;
 }
-

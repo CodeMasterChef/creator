@@ -7,6 +7,7 @@ import Link from "next/link";
 import { signOut } from "@/lib/auth";
 import GenerateTestButton from "@/components/GenerateTestButton";
 import DeleteArticleButton from "@/components/DeleteArticleButton";
+import EditArticleButton from "@/components/EditArticleButton";
 import { LogOut, FileText, CheckCircle, Clock } from "lucide-react";
 
 async function handleSignOut() {
@@ -24,6 +25,40 @@ async function deleteArticle(articleId: string) {
     } catch (error) {
         console.error('Error deleting article:', error);
         return { success: false, error: 'Failed to delete article' };
+    }
+}
+
+async function updateArticle(articleId: string, data: {
+    title: string;
+    slug: string;
+    content: string;
+    image: string;
+    tags: string;
+    isPublished: boolean;
+}) {
+    "use server";
+    try {
+        // Generate summary from content (first 200 chars without HTML)
+        const cleanContent = data.content.replace(/<[^>]*>/g, '');
+        const summary = cleanContent.substring(0, 200) + '...';
+
+        await prisma.article.update({
+            where: { id: articleId },
+            data: {
+                title: data.title,
+                slug: data.slug,
+                content: data.content,
+                image: data.image,
+                tags: data.tags,
+                summary: summary,
+                isPublished: data.isPublished,
+                updatedAt: new Date()
+            }
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error updating article:', error);
+        return { success: false, error: 'Failed to update article' };
     }
 }
 
@@ -179,7 +214,7 @@ export default async function AdminDashboard() {
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                     {articles.map((article) => (
-                                        <tr key={article.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                        <tr key={article.id} className="transition-all duration-150 group">
                                             <td className="px-4 sm:px-6 py-4">
                                                 <div className="max-w-xs">
                                                     <div className="font-medium text-gray-900 dark:text-white text-sm sm:text-base line-clamp-2 mb-1">
@@ -208,18 +243,30 @@ export default async function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td className="px-4 sm:px-6 py-4">
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 flex-wrap">
                                                     <a 
                                                         href={`/article/${article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}?id=${article.id}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary-dark text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-yellow-500 dark:hover:bg-yellow-400 text-white dark:text-gray-900 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105"
                                                     >
                                                         Xem
                                                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                                         </svg>
                                                     </a>
+                                                    <EditArticleButton
+                                                        article={{
+                                                            id: article.id,
+                                                            title: article.title,
+                                                            slug: article.slug || article.id,
+                                                            content: article.content,
+                                                            image: article.image,
+                                                            tags: article.tags,
+                                                            isPublished: article.isPublished
+                                                        }}
+                                                        onUpdate={updateArticle}
+                                                    />
                                                     <DeleteArticleButton 
                                                         articleId={article.id} 
                                                         articleTitle={article.title}
