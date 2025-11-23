@@ -15,8 +15,75 @@ if (typeof window === 'undefined') {
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Thư Viện Tiền Số | Tin Tức Crypto Hàng Đầu",
-  description: "Cập nhật tin tức Crypto và Blockchain mới nhất từ khắp thế giới.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://thuvientienso.com'),
+  title: {
+    default: "Thư Viện Tiền Số | Tin Tức Crypto & Blockchain Hàng Đầu",
+    template: "%s | Thư Viện Tiền Số"
+  },
+  description: "Cập nhật tin tức Crypto, Bitcoin, Blockchain, và thị trường tiền điện tử mới nhất 24/7. Phân tích chuyên sâu và xu hướng đầu tư.",
+  keywords: ["crypto", "bitcoin", "blockchain", "tiền ảo", "tin tức crypto", "thị trường tiền điện tử", "đầu tư crypto", "ethereum", "web3"],
+  authors: [{ name: "Thư Viện Tiền Số Team" }],
+  creator: "Thư Viện Tiền Số",
+  publisher: "Thư Viện Tiền Số",
+  openGraph: {
+    title: "Thư Viện Tiền Số | Tin Tức Crypto & Blockchain Hàng Đầu",
+    description: "Cập nhật tin tức Crypto, Bitcoin, Blockchain, và thị trường tiền điện tử mới nhất 24/7.",
+    url: '/',
+    siteName: 'Thư Viện Tiền Số',
+    locale: 'vi_VN',
+    type: 'website',
+    images: [
+      {
+        url: '/logo-thu-vien-tien-so.png',
+        width: 800,
+        height: 600,
+        alt: 'Thư Viện Tiền Số Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Thư Viện Tiền Số | Tin Tức Crypto & Blockchain Hàng Đầu",
+    description: "Cập nhật tin tức Crypto, Bitcoin, Blockchain, và thị trường tiền điện tử mới nhất 24/7.",
+    images: ['/logo-thu-vien-tien-so.png'],
+    creator: '@thuvientienso',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'verification_token', // Cần cập nhật token thật
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "NewsMediaOrganization",
+  "name": "Thư Viện Tiền Số",
+  "url": process.env.NEXT_PUBLIC_APP_URL || 'https://thuvientienso.com',
+  "logo": {
+    "@type": "ImageObject",
+    "url": `${process.env.NEXT_PUBLIC_APP_URL || 'https://thuvientienso.com'}/logo-thu-vien-tien-so.png`,
+    "width": 512,
+    "height": 512
+  },
+  "sameAs": [
+    "https://www.facebook.com/crypto.guru.to.the.moon",
+    "https://twitter.com/thuvientienso"
+  ],
+  "description": "Nguồn tin tức hàng đầu về thị trường tiền điện tử và blockchain.",
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "VN"
+  }
 };
 
 export default function RootLayout({
@@ -31,9 +98,9 @@ export default function RootLayout({
           <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="relative h-8 sm:h-10 aspect-square">
-                <Image 
-                  src="/logo-thu-vien-tien-so.png" 
-                  alt="Thư Viện Tiền Số" 
+                <Image
+                  src="/logo-thu-vien-tien-so.png"
+                  alt="Thư Viện Tiền Số"
                   fill
                   className="object-contain"
                 />
@@ -60,9 +127,9 @@ export default function RootLayout({
               <div className="col-span-1 md:col-span-2">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="relative h-12 aspect-square">
-                    <Image 
-                      src="/logo-thu-vien-tien-so.png" 
-                      alt="Thư Viện Tiền Số" 
+                    <Image
+                      src="/logo-thu-vien-tien-so.png"
+                      alt="Thư Viện Tiền Số"
                       fill
                       className="object-contain"
                     />
@@ -75,7 +142,7 @@ export default function RootLayout({
                 <div className="flex gap-4">
                   <a href="https://www.facebook.com/crypto.guru.to.the.moon" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary transition-colors" title="Theo dõi chúng tôi trên Facebook">
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
+                      <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
                     </svg>
                   </a>
                 </div>
@@ -113,6 +180,10 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </body>
     </html>
   );
