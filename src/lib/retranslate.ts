@@ -3,7 +3,6 @@
 
 import { prisma } from '@/lib/prisma';
 import { translateWithGemini } from './auto-generator';
-import { translateWithGoogleTranslate } from './auto-generator';
 
 export async function retranslateAllTitles() {
     try {
@@ -19,21 +18,21 @@ export async function retranslateAllTitles() {
             if (hasVietnamese) continue; // skip already translated
 
             // Try Gemini first
-            const geminiResult = await translateWithGemini(article.title, article.content ?? '');
-            let newTitle: string;
-            if (geminiResult.success) {
-                newTitle = geminiResult.title;
-                console.log(`✅ Gemini translated title for article ${article.id}`);
-            } else {
-                // Fallback to Google Translate
-                newTitle = await translateWithGoogleTranslate(article.title);
-                console.log(`🔄 Google Translate used for article ${article.id}`);
-            }
+            // Try Gemini first
+            try {
+                const geminiResult = await translateWithGemini(article.title, article.content ?? '');
+                if (geminiResult.success) {
+                    const newTitle = geminiResult.title;
+                    console.log(`✅ Gemini translated title for article ${article.id}`);
 
-            await prisma.article.update({
-                where: { id: article.id },
-                data: { title: newTitle },
-            });
+                    await prisma.article.update({
+                        where: { id: article.id },
+                        data: { title: newTitle },
+                    });
+                }
+            } catch (e) {
+                console.log(`❌ Translation failed for article ${article.id}`);
+            }
         }
 
         console.log('✅ Re‑translation completed');

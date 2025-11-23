@@ -21,13 +21,13 @@ const genAI = process.env.GEMINI_API_KEY
     ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
     : null;
 
-async function translateWithGemini(title: string, content: string): Promise<{ title: string; content: string; success: boolean }> {
+export async function translateWithGemini(title: string, content: string): Promise<{ title: string; content: string; success: boolean }> {
     if (!genAI) {
         throw new Error('⚠️ Gemini API key not found. Please set GEMINI_API_KEY in .env file');
     }
 
     try {
-        const model = genAI.getGenerativeModel({ 
+        const model = genAI.getGenerativeModel({
             model: "gemini-2.0-flash-exp",  // Latest experimental model with improved capabilities
             generationConfig: {
                 responseMimeType: "application/json",
@@ -110,16 +110,16 @@ QUAN TRỌNG:
                 }
 
                 let jsonStr = jsonMatch[0];
-                
+
                 // Advanced JSON cleaning
                 // 1. Remove trailing commas before closing braces/brackets
                 jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
-                
+
                 // 2. Fix common issues with quotes in Vietnamese text
                 // Replace problematic characters that might break JSON
                 jsonStr = jsonStr.replace(/[\u2018\u2019]/g, "'"); // Smart quotes to regular quotes
                 jsonStr = jsonStr.replace(/[\u201C\u201D]/g, '"'); // Smart double quotes
-                
+
                 // 3. Try parsing with cleaned string
                 try {
                     parsed = JSON.parse(jsonStr);
@@ -127,7 +127,7 @@ QUAN TRỌNG:
                     // Last resort: try to extract just title and content fields
                     const titleMatch = jsonStr.match(/"title"\s*:\s*"([^"]+(?:\\.[^"]*)*)"/);
                     const contentMatch = jsonStr.match(/"content"\s*:\s*"([\s\S]*?)"\s*}/);
-                    
+
                     if (titleMatch && contentMatch) {
                         parsed = {
                             title: titleMatch[1].replace(/\\"/g, '"'),
@@ -138,7 +138,7 @@ QUAN TRỌNG:
                     }
                 }
             }
-            
+
             if (!parsed.title || !parsed.content) {
                 throw new Error('Missing title or content in JSON');
             }
@@ -151,10 +151,10 @@ QUAN TRỌNG:
 
         // Convert markdown bold to HTML strong (in case AI still uses markdown)
         let cleanedContent = parsed.content;
-        
+
         // Convert **text** to <strong>text</strong>
         cleanedContent = cleanedContent.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-        
+
         // Convert __text__ to <strong>text</strong>
         cleanedContent = cleanedContent.replace(/__([^_]+)__/g, '<strong>$1</strong>');
 
@@ -163,13 +163,13 @@ QUAN TRỌNG:
         if (firstHeadingMatch) {
             const firstHeading = firstHeadingMatch[1].replace(/<[^>]+>/g, '').trim();
             const titleText = parsed.title.replace(/<[^>]+>/g, '').trim();
-            
+
             // Check similarity (simple approach: if heading contains 70% of title words)
             const titleWords = titleText.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
             const headingWords = firstHeading.toLowerCase().split(/\s+/);
             const matchCount = titleWords.filter((word: string) => headingWords.some((hw: string) => hw.includes(word))).length;
             const similarity = matchCount / Math.max(titleWords.length, 1);
-            
+
             // If similarity > 0.6 (60%), remove the first heading
             if (similarity > 0.6) {
                 console.log(`🔧 Removing duplicate first heading: "${firstHeading}"`);
@@ -192,7 +192,7 @@ QUAN TRỌNG:
 export async function generateAndSaveArticle() {
     const startTime = Date.now();
     let logId: string | null = null;
-    
+
     try {
         // Create generation log entry
         const log = await prisma.generationLog.create({
@@ -202,7 +202,7 @@ export async function generateAndSaveArticle() {
             }
         });
         logId = log.id;
-        
+
         console.log(`📰 Fetching latest articles from CoinDesk...`);
 
         // Get more article URLs from CoinDesk homepage (increased from 10 to 50)
@@ -282,7 +282,7 @@ export async function generateAndSaveArticle() {
         // Extract potential tags from title
         const extractTags = (title: string): string => {
             const keywords = ['Bitcoin', 'Ethereum', 'BTC', 'ETH', 'DeFi', 'NFT', 'Crypto', 'Blockchain', 'Web3', 'Altcoin'];
-            const foundTags = keywords.filter(keyword => 
+            const foundTags = keywords.filter(keyword =>
                 title.toLowerCase().includes(keyword.toLowerCase())
             );
             return foundTags.join(', ');
@@ -305,7 +305,7 @@ export async function generateAndSaveArticle() {
         });
 
         console.log(`✅ Article created: ${article.title} (Gemini AI)`);
-        
+
         // Update log with success
         if (logId) {
             const duration = Date.now() - startTime;
@@ -319,12 +319,12 @@ export async function generateAndSaveArticle() {
                 }
             });
         }
-        
+
         return article;
 
     } catch (error) {
         console.error("Failed to generate article:", error);
-        
+
         // Update log with failure
         if (logId) {
             const duration = Date.now() - startTime;
@@ -339,7 +339,7 @@ export async function generateAndSaveArticle() {
                 }
             });
         }
-        
+
         throw error;
     }
 }

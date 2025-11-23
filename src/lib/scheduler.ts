@@ -1,10 +1,10 @@
-import cron from 'node-cron';
+import cron, { ScheduledTask } from 'node-cron';
 import { generateAndSaveArticle } from './auto-generator';
 import { generateMultipleArticles } from './batch-generator';
 import { prisma } from './prisma';
 
 let isSchedulerRunning = false;
-let currentCronJob: cron.ScheduledTask | null = null;
+let currentCronJob: ScheduledTask | null = null;
 
 async function getSettings(): Promise<{ enabled: boolean; intervalMinutes: number }> {
     try {
@@ -12,9 +12,9 @@ async function getSettings(): Promise<{ enabled: boolean; intervalMinutes: numbe
         if (!settings) {
             // Create default settings if not exists
             settings = await prisma.systemSettings.create({
-                data: { 
+                data: {
                     autoGenerationEnabled: true,
-                    generationInterval: 120 
+                    generationInterval: 120
                 }
             });
         }
@@ -45,12 +45,12 @@ function getCronExpression(minutes: number): string {
 async function shouldRunInitialBatch(): Promise<boolean> {
     try {
         const { enabled, intervalMinutes } = await getSettings();
-        
+
         // Don't run if auto-generation is disabled
         if (!enabled) {
             return false;
         }
-        
+
         // Check if we generated articles recently (within the last interval)
         const recentLog = await prisma.generationLog.findFirst({
             orderBy: { startedAt: 'desc' },
@@ -60,7 +60,7 @@ async function shouldRunInitialBatch(): Promise<boolean> {
                 }
             }
         });
-        
+
         return !recentLog; // Only run if no recent generation
     } catch (error) {
         console.error('Error checking recent generation:', error);
@@ -75,7 +75,7 @@ export async function startAutoGeneration() {
     }
 
     const { enabled, intervalMinutes } = await getSettings();
-    
+
     if (!enabled) {
         console.log('⏸️ Auto-generation is DISABLED. Scheduler not started.');
         return;
@@ -94,7 +94,7 @@ export async function startAutoGeneration() {
             console.log('⏸️ Auto-generation disabled, skipping scheduled run');
             return;
         }
-        
+
         console.log('🤖 Auto-generating articles (batch of 3)...');
         try {
             await generateMultipleArticles(3);

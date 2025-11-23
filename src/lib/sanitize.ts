@@ -22,7 +22,7 @@ export function sanitizeHtml(html: string): string {
         FORCE_BODY: false,
         RETURN_DOM: false,
         RETURN_DOM_FRAGMENT: false,
-        RETURN_DOM_IMPORT: false,
+
         SANITIZE_DOM: true,
         KEEP_CONTENT: true,
     });

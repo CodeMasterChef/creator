@@ -2,8 +2,7 @@
 // Run this script manually when you want to clean the DB.
 
 import { prisma } from '@/lib/prisma';
-import { translateWithGemini } from './auto-generator'; // not needed but kept for import consistency
-import { translateWithGoogleTranslate } from './auto-generator'; // not needed
+
 
 export async function deleteEnglishArticles() {
     try {

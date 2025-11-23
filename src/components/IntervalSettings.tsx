@@ -10,9 +10,9 @@ interface IntervalSettingsProps {
 export default function IntervalSettings({ currentIntervalMinutes }: IntervalSettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Convert current interval to appropriate unit
-  const getInitialValues = () => {
+  const getInitialValues = (): { value: number; unit: 'minutes' | 'hours' } => {
     if (currentIntervalMinutes < 60) {
       return { value: currentIntervalMinutes, unit: 'minutes' };
     } else {
@@ -26,8 +26,8 @@ export default function IntervalSettings({ currentIntervalMinutes }: IntervalSet
 
   const handleSave = async () => {
     // Convert to minutes
-    const totalMinutes = intervalUnit === 'hours' 
-      ? intervalValue * 60 
+    const totalMinutes = intervalUnit === 'hours'
+      ? intervalValue * 60
       : intervalValue;
 
     if (totalMinutes < 1) {
@@ -83,7 +83,7 @@ export default function IntervalSettings({ currentIntervalMinutes }: IntervalSet
                   ⚡ Cập nhật tự động
                 </h3>
                 <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
-                  Hệ thống tự động thu thập tin tức từ CoinDesk mỗi <strong>{displayInterval()}</strong>. 
+                  Hệ thống tự động thu thập tin tức từ CoinDesk mỗi <strong>{displayInterval()}</strong>.
                   Bài viết được dịch và xuất bản tự động lên trang chủ.
                 </p>
               </div>
@@ -110,7 +110,7 @@ export default function IntervalSettings({ currentIntervalMinutes }: IntervalSet
           <h3 className="text-sm sm:text-base font-semibold text-blue-900 dark:text-blue-100 mb-3">
             ⚙️ Cài đặt khoảng thời gian tự động
           </h3>
-          
+
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
@@ -125,7 +125,7 @@ export default function IntervalSettings({ currentIntervalMinutes }: IntervalSet
                   className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-blue-950/30 text-blue-900 dark:text-blue-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-              
+
               <div className="flex-1">
                 <label className="block text-xs font-medium text-blue-900 dark:text-blue-200 mb-1">
                   Đơn vị
@@ -155,7 +155,7 @@ export default function IntervalSettings({ currentIntervalMinutes }: IntervalSet
                 <Save className="w-4 h-4" />
                 {isSaving ? 'Đang lưu...' : 'Lưu cài đặt'}
               </button>
-              
+
               <button
                 onClick={() => {
                   setIntervalValue(initial.value);
