@@ -13,7 +13,6 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset",
     "generate": "tsx scripts/generate-batch.ts",
-    "postinstall": "prisma generate",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "restart": "./restart.sh",
     "kill:3000": "lsof -ti:3000 | xargs kill -9 || echo 'Port 3000 is free'"

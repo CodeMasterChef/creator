@@ -1,17 +1,17 @@
 {
   "framework": "nextjs",
   "buildCommand": "prisma generate && prisma migrate deploy && next build",
-  "installCommand": "npm install",
-  "regions": ["sin1"],
+  "installCommand": "npm install --legacy-peer-deps",
+  "regions": [
+    "sin1"
+  ],
   "env": {
     "NODE_ENV": "production"
   },
   "crons": [
     {
       "path": "/api/cron/generate",
-      "schedule": "0 */2 * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
-
-
