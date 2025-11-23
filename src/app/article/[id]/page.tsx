@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!article) return { title: "Không tìm thấy" };
 
     return {
-        title: `${article.title} | CryptoPulse`,
+        title: `${article.title} | Thư Viện Tiền Số`,
         description: article.summary,
         openGraph: {
             title: article.title,
@@ -44,20 +44,20 @@ export default async function ArticlePage({ params }: Props) {
     }
 
     return (
-        <article className="animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto' }}>
-            <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
-                <span style={{ color: 'var(--accent-primary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
+        <article className="animate-fade-in w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12" style={{ maxWidth: '900px', margin: '0 auto' }}>
+            <div style={{ marginBottom: '1.5rem', textAlign: 'center' }} className="sm:mb-8">
+                <span className="text-xs sm:text-sm" style={{ color: 'var(--accent-primary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>
                     Tin Tức
                 </span>
-                <h1 style={{ fontSize: '3rem', marginTop: '1rem', lineHeight: '1.1' }}>{article.title}</h1>
-                <div className="text-gray" style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                    <span>Bởi {article.author}</span>
-                    <span>•</span>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl dark:text-white" style={{ marginTop: '0.75rem', lineHeight: '1.1', fontWeight: 'bold' }}>{article.title}</h1>
+                <div className="text-gray text-xs sm:text-sm" style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <span>Biên tập: {article.author}</span>
+                    <span className="hidden sm:inline">•</span>
                     <time>{format(new Date(article.date), "d MMMM, yyyy", { locale: vi })}</time>
                 </div>
             </div>
 
-            <div style={{ position: 'relative', width: '100%', height: '400px', borderRadius: '16px', overflow: 'hidden', marginBottom: '3rem' }}>
+            <div className="relative w-full h-48 sm:h-64 lg:h-96 rounded-lg sm:rounded-xl overflow-hidden mb-6 sm:mb-8 lg:mb-12">
                 <Image
                     src={article.image}
                     alt={article.title}
@@ -68,20 +68,20 @@ export default async function ArticlePage({ params }: Props) {
             </div>
 
             <div
-                className="article-content"
-                style={{ fontSize: '1.125rem', lineHeight: '1.8', color: 'var(--text-primary)' }}
+                className="article-content prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none"
+                style={{ fontSize: '0.95rem', lineHeight: '1.7', color: 'var(--text-primary)' }}
                 dangerouslySetInnerHTML={{ __html: article.content }}
             />
 
-            <div style={{ marginTop: '4rem', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)' }}>
-                <h3 style={{ marginBottom: '1rem' }}>Về Tác Giả</h3>
-                <div className="card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'var(--accent-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'black', fontWeight: 'bold' }}>
-                        AI
+            <div className="mt-8 sm:mt-12 lg:mt-16 pt-6 sm:pt-8 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 dark:text-white">Về Biên Tập Viên</h3>
+                <div className="card bg-gray-50 dark:bg-gray-800 rounded-lg p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center text-white font-bold text-lg sm:text-xl lg:text-2xl flex-shrink-0">
+                        {article.author.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <p style={{ fontWeight: 'bold' }}>{article.author}</p>
-                        <p className="text-sm text-gray">Chuyên Gia Phân Tích Thị Trường Tự Động</p>
+                        <p className="font-bold text-base sm:text-lg dark:text-white">{article.author}</p>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Biên Tập Viên Tin Tức Crypto</p>
                     </div>
                 </div>
             </div>

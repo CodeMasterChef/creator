@@ -37,7 +37,7 @@ export default function GenerateTestButton() {
                 className="btn-primary"
                 style={{ marginBottom: '1rem' }}
             >
-                {loading ? '🔄 Đang tạo bài...' : '🚀 Test: Tạo Bài Ngay'}
+                {loading ? '🔄 Đang tạo bài...' : '📰 Tạo Bài Viết Mới'}
             </button>
 
             {result && (

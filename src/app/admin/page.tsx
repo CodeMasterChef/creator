@@ -63,9 +63,9 @@ export default async function AdminDashboard() {
             </div>
 
             <div className="card" style={{ marginBottom: '2rem' }}>
-                <h3 style={{ marginBottom: '1rem' }}>🧪 Test Tạo Bài Tự Động</h3>
+                <h3 style={{ marginBottom: '1rem' }}>📰 Tạo Bài Viết Mới</h3>
                 <p className="text-sm text-gray" style={{ marginBottom: '1rem' }}>
-                    Bấm nút bên dưới để test tính năng tự động lấy tin và dịch sang tiếng Việt.
+                    Thu thập tin tức mới nhất từ các nguồn tin uy tín và xuất bản lên trang.
                 </p>
                 <GenerateTestButton />
             </div>
@@ -125,10 +125,10 @@ export default async function AdminDashboard() {
             </div>
 
             <div className="card" style={{ marginTop: '2rem', background: 'rgba(59, 130, 246, 0.1)', borderColor: 'rgba(59, 130, 246, 0.3)' }}>
-                <h3 style={{ marginBottom: '0.5rem' }}>🤖 Tự động tạo bài</h3>
+                <h3 style={{ marginBottom: '0.5rem' }}>⚡ Cập nhật tự động</h3>
                 <p className="text-sm text-gray">
-                    Hệ thống tự động thu thập tin tức từ các nguồn RSS và tạo bài viết mới mỗi 2 giờ.
-                    Bài viết được lưu tự động vào database và xuất bản ngay lập tức.
+                    Hệ thống cập nhật tin tức từ các nguồn RSS uy tín mỗi 2 giờ.
+                    Bài viết được biên tập và xuất bản ngay lập tức.
                 </p>
             </div>
         </div>
