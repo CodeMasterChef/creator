@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { formatDistanceToNow, format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { ArticleImage } from '@/components/ArticleImage';
+import { generateArticleUrl } from '@/lib/slugify';
 
 interface Article {
   id: string;
@@ -146,7 +147,7 @@ export default async function Home({ searchParams }: HomeProps) {
                     </div>
                     
                     {/* Article Link */}
-                    <Link href={`/article/${article.id}`} className="group">
+                    <Link href={generateArticleUrl(article.title, article.id)} className="group">
                       <h3 className="font-serif text-base font-bold leading-tight mb-2 group-hover:text-primary transition-colors">
                         {article.title}
                       </h3>
@@ -210,7 +211,7 @@ export default async function Home({ searchParams }: HomeProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {mainArticles.map((article) => (
                 <article key={article.id}>
-                  <Link href={`/article/${article.id}`} className="group block">
+                  <Link href={generateArticleUrl(article.title, article.id)} className="group block">
                     {/* Image */}
                     <div className="relative aspect-[16/9] rounded-lg overflow-hidden mb-3 bg-gray-900">
                       {article.image && (

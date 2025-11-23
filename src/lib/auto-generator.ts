@@ -1,6 +1,5 @@
 import Parser from 'rss-parser';
 import { prisma } from './prisma';
-import { translate as googleTranslate } from '@vitalets/google-translate-api';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getLatestCoinDeskArticles, scrapeCoinDeskArticle } from './scraper';
 
@@ -23,12 +22,16 @@ const genAI = process.env.GEMINI_API_KEY
 
 async function translateWithGemini(title: string, content: string): Promise<{ title: string; content: string; success: boolean }> {
     if (!genAI) {
-        console.log('⚠️ Gemini API key not found, using Google Translate');
-        return { title: '', content: '', success: false };
+        throw new Error('⚠️ Gemini API key not found. Please set GEMINI_API_KEY in .env file');
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-2.0-flash",
+            generationConfig: {
+                responseMimeType: "application/json",
+            },
+        });
 
         const prompt = `Bạn là một biên tập viên chuyên nghiệp về thị trường tiền điện tử và blockchain.
 
@@ -102,13 +105,34 @@ QUAN TRỌNG:
         const result = await model.generateContent(prompt);
         const response = result.response.text();
 
-        // Parse JSON from response
-        const jsonMatch = response.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-            throw new Error('Invalid JSON response from Gemini');
-        }
+        // Try to extract and parse JSON from response
+        let parsed;
+        try {
+            // First, try to find JSON block
+            const jsonMatch = response.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                throw new Error('No JSON found in response');
+            }
 
-        const parsed = JSON.parse(jsonMatch[0]);
+            // Clean up common JSON issues
+            let jsonStr = jsonMatch[0];
+            
+            // Remove trailing commas before closing braces/brackets
+            jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
+            
+            // Fix unescaped quotes in strings (basic fix)
+            // This is a simple approach - may need more sophisticated handling
+            
+            parsed = JSON.parse(jsonStr);
+            
+            if (!parsed.title || !parsed.content) {
+                throw new Error('Missing title or content in JSON');
+            }
+        } catch (parseError: any) {
+            console.error('JSON Parse Error:', parseError.message);
+            console.error('Response preview:', response.substring(0, 500));
+            throw new Error(`Failed to parse Gemini response: ${parseError.message}`);
+        }
 
         console.log('✅ Gemini AI translation successful');
         return {
@@ -118,23 +142,7 @@ QUAN TRỌNG:
         };
     } catch (error: any) {
         console.error('❌ Gemini AI error:', error.message);
-
-        // Check if quota exceeded
-        if (error.message?.includes('quota') || error.message?.includes('429')) {
-            console.log('⚠️ Gemini quota exceeded, switching to Google Translate');
-        }
-
-        return { title: '', content: '', success: false };
-    }
-}
-
-async function translateWithGoogleTranslate(text: string): Promise<string> {
-    try {
-        const result = await googleTranslate(text, { to: 'vi' });
-        return result.text;
-    } catch (error) {
-        console.error('Translation error:', error);
-        return text; // Return original if translation fails
+        throw error; // Re-throw error instead of falling back
     }
 }
 
@@ -179,59 +187,27 @@ export async function generateAndSaveArticle() {
 
         console.log(`🤖 Processing with Gemini AI: ${scrapedArticle.title}`);
 
-        // Try Gemini AI first for high-quality rewrite
-        let titleVi = '';
-        let contentVi = '';
-        let usedGemini = false;
-
+        // Use Gemini AI for high-quality translation and rewrite
         const geminiResult = await translateWithGemini(scrapedArticle.title, scrapedArticle.content);
 
-        if (geminiResult.success) {
-            titleVi = geminiResult.title;
-            contentVi = geminiResult.content;
-            usedGemini = true;
-            console.log('✅ Using Gemini AI for content generation');
-        } else {
-            // Fallback to Google Translate
-            console.log('🔄 Falling back to Google Translate');
-            titleVi = await translateWithGoogleTranslate(scrapedArticle.title);
-            
-            // Verify translation success - if title matches original or doesn't look Vietnamese-ish
-            if (titleVi === scrapedArticle.title) {
-                throw new Error("Translation failed: Title returned unchanged");
-            }
-
-            // For fallback, use first 2000 chars to avoid translation limits
-            const shortContent = scrapedArticle.content.slice(0, 2000);
-            contentVi = await translateWithGoogleTranslate(shortContent);
+        if (!geminiResult.success) {
+            throw new Error("Gemini AI translation failed");
         }
+
+        const titleVi = geminiResult.title;
+        const contentVi = geminiResult.content;
+        console.log('✅ Gemini AI translation successful');
 
 
         // Use scraped image instead of fallback
         const image = scrapedArticle.image || FALLBACK_IMAGES[Math.floor(Math.random() * FALLBACK_IMAGES.length)];
 
-        // Create Vietnamese content with translated text
-        const content = usedGemini ? `
+        // Create Vietnamese content with Gemini-generated text
+        const content = `
             <article>
                 <div class="prose prose-lg max-w-none">
                     ${contentVi}
                 </div>
-
-                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 italic">
-                        <small>Bài viết này được tổng hợp và dịch từ các nguồn bên ngoài. Đọc gốc tại: <a href="${scrapedArticle.url}" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">CoinDesk</a>.</small>
-                    </p>
-                </div>
-            </article>
-        ` : `
-            <article>
-                <p class="lead text-base sm:text-lg"><strong>${titleVi}</strong></p>
-                <div class="my-4">
-                    ${contentVi.split('\n\n').map(p => `<p class="mb-4">${p}</p>`).join('')}
-                </div>
-                
-                <h3 class="text-lg sm:text-xl font-bold mt-6 mb-3 dark:text-white">Bối Cảnh Thị Trường</h3>
-                <p class="mb-4">Sự phát triển này diễn ra vào thời điểm quan trọng đối với thị trường tiền điện tử. Các nhà phân tích đề nghị theo dõi các token liên quan để biết khả năng biến động.</p>
 
                 <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 italic">
@@ -261,7 +237,7 @@ export async function generateAndSaveArticle() {
             }
         });
 
-        console.log(`✅ Article created: ${article.title} (${usedGemini ? 'Gemini AI' : 'Google Translate'})`);
+        console.log(`✅ Article created: ${article.title} (Gemini AI)`);
         return article;
 
     } catch (error) {

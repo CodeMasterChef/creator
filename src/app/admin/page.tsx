@@ -6,11 +6,25 @@ import { vi } from "date-fns/locale";
 import Link from "next/link";
 import { signOut } from "@/lib/auth";
 import GenerateTestButton from "@/components/GenerateTestButton";
+import DeleteArticleButton from "@/components/DeleteArticleButton";
 import { LogOut, FileText, CheckCircle, Clock } from "lucide-react";
 
 async function handleSignOut() {
     "use server";
     await signOut();
+}
+
+async function deleteArticle(articleId: string) {
+    "use server";
+    try {
+        await prisma.article.delete({
+            where: { id: articleId }
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting article:', error);
+        return { success: false, error: 'Failed to delete article' };
+    }
 }
 
 export default async function AdminDashboard() {
@@ -194,16 +208,24 @@ export default async function AdminDashboard() {
                                                 </span>
                                             </td>
                                             <td className="px-4 sm:px-6 py-4">
-                                                <Link 
-                                                    href={`/article/${article.id}`}
-                                                    target="_blank"
-                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary-dark text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
-                                                >
-                                                    Xem
-                                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                    </svg>
-                                                </Link>
+                                                <div className="flex items-center gap-2">
+                                                    <a 
+                                                        href={`/article/${article.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}?id=${article.id}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary-dark text-white text-xs sm:text-sm font-medium rounded-lg transition-colors"
+                                                    >
+                                                        Xem
+                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                        </svg>
+                                                    </a>
+                                                    <DeleteArticleButton 
+                                                        articleId={article.id} 
+                                                        articleTitle={article.title}
+                                                        onDelete={deleteArticle}
+                                                    />
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

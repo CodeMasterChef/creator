@@ -43,9 +43,16 @@ npm run dev
 
 ## 🔐 Thông Tin Đăng Nhập Admin
 
+Thông tin đăng nhập được lưu trong file `.env`:
+
+```bash
+ADMIN_EMAIL="admin@creator.com"
+ADMIN_PASSWORD="admin123"
+```
+
 - **URL:** http://localhost:3000/admin/login
-- **Email:** admin@creator.com
-- **Password:** admin123
+- **Email:** Xem trong file `.env` (ADMIN_EMAIL)
+- **Password:** Xem trong file `.env` (ADMIN_PASSWORD)
 
 ## 📁 Cấu Trúc Dự Án
 

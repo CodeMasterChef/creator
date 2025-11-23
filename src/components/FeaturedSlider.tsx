@@ -6,6 +6,7 @@ import { ArticleImage } from "./ArticleImage";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { generateArticleUrl } from "@/lib/slugify";
 
 interface Article {
   id: string;
@@ -68,7 +69,7 @@ export default function FeaturedSlider({ articles }: FeaturedSliderProps) {
               {pair.map((article) => (
                 <Link
                   key={article.id}
-                  href={`/article/${article.id}`}
+                  href={generateArticleUrl(article.title, article.id)}
                   className="flex gap-3 sm:gap-4 group/item hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg p-2 sm:p-3 transition-colors"
                 >
                   {/* Image - 145px width */}

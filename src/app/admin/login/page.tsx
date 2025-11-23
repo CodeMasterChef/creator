@@ -113,11 +113,6 @@ export default function LoginPage() {
                         {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                     </button>
                 </form>
-
-                <div style={{ marginTop: '1.5rem', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                    <p>Email mặc định: <strong>admin@creator.com</strong></p>
-                    <p>Mật khẩu mặc định: <strong>admin123</strong></p>
-                </div>
             </div>
         </div>
     );
