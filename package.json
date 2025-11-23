@@ -16,7 +16,8 @@
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "restart": "./restart.sh",
     "kill:3000": "lsof -ti:3000 | xargs kill -9 || echo 'Port 3000 is free'",
-    "prisma:generate:vercel": "npx dotenv-cli -e .env.vercel -- npx prisma generate"
+    "prisma:generate:vercel": "npx dotenv-cli -e .env.vercel -- npx prisma generate",
+    "db:seed:vercel": "dotenv-cli -e .env.vercel -- npm run db:seed"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
@@ -51,5 +52,10 @@
     "tailwindcss": "^3.4.1",
     "tsx": "^4.19.2",
     "typescript": "^5"
+  },
+  "overrides": {
+    "jsdom": {
+      "parse5": "6.0.1"
+    }
   }
 }

@@ -50,34 +50,92 @@
 - npm hoặc yarn
 - PostgreSQL (for production) hoặc SQLite (for development)
 
-### Development Setup
+### 🔧 Development Setup (Local)
+
+**Môi trường:** SQLite database, file `.env` hoặc `.env.local`
 
 ```bash
-# Clone repository
+# 1. Clone repository
 git clone https://github.com/your-username/thu-vien-tien-so.git
 cd thu-vien-tien-so
 
-# Install dependencies
+# 2. Install dependencies
 npm install
 
-# Setup environment variables
+# 3. Setup environment variables
 cp .env.local.example .env.local
 # Edit .env.local với your credentials
 
-# Generate Prisma Client
+# 4. Generate Prisma Client
 npx prisma generate
 
-# Run database migrations
+# 5. Run database migrations (tạo tables)
 npx prisma migrate dev
 
-# Create admin user
+# 6. Create admin user (chỉ chạy 1 lần)
 npm run db:seed
 
-# Start development server
+# 7. Start development server
 npm run dev
 ```
 
 Mở [http://localhost:3000](http://localhost:3000) trong browser.
+
+### 🚀 Production Setup (Vercel)
+
+**Môi trường:** PostgreSQL database, file `.env.vercel` (local testing) hoặc Vercel Environment Variables
+
+#### Lần đầu tiên setup database:
+
+```bash
+# 1. Tạo file .env.vercel với DATABASE_URL từ Vercel Postgres
+# DATABASE_URL="postgresql://user:password@host:5432/db"
+
+# 2. Generate Prisma Client với Vercel env
+npm run prisma:generate:vercel
+
+# 3. Deploy migrations (tạo tables trong PostgreSQL)
+npx dotenv-cli -e .env.vercel -- npx prisma migrate deploy
+
+# 4. Seed database (tạo admin user - chỉ chạy 1 lần)
+npm run db:seed:vercel
+```
+
+#### Khi có schema changes:
+
+```bash
+# 1. Tạo migration mới (dev environment)
+npx prisma migrate dev --name your_migration_name
+
+# 2. Deploy migration lên production
+npx dotenv-cli -e .env.vercel -- npx prisma migrate deploy
+```
+
+#### Test production build locally:
+
+```bash
+# Build với production env
+npx dotenv-cli -e .env.vercel -- npm run build
+
+# Start production server
+npx dotenv-cli -e .env.vercel -- npm start
+```
+
+### 📊 Tóm tắt: Khi nào cần khởi tạo Database?
+
+| Tình huống | Commands cần chạy | Ghi chú |
+|------------|-------------------|---------|
+| **Lần đầu setup Dev** | `npx prisma migrate dev` → `npm run db:seed` | Tạo SQLite database + tables + admin user |
+| **Lần đầu setup Production** | `npx dotenv-cli -e .env.vercel -- npx prisma migrate deploy` → `npm run db:seed:vercel` | Tạo tables trong PostgreSQL + admin user |
+| **Có thay đổi schema** | Dev: `npx prisma migrate dev --name xyz`<br/>Prod: `npx dotenv-cli -e .env.vercel -- npx prisma migrate deploy` | Cập nhật cấu trúc database |
+| **Reset database** | `npm run db:reset` (dev only) | ⚠️ XÓA toàn bộ data và tạo lại |
+| **Chỉ cần admin user mới** | `npm run db:seed` hoặc `npm run db:seed:vercel` | Có thể chạy nhiều lần (upsert) |
+
+**⚠️ Lưu ý quan trọng:**
+- **Development**: Sử dụng SQLite (`file:./prisma/dev.db`), data lưu local
+- **Production**: Sử dụng PostgreSQL (Vercel Postgres), data lưu trên cloud
+- **Seed script** có thể chạy nhiều lần an toàn (sử dụng `upsert`)
+- **Migration** phải chạy trước khi seed (tạo tables trước, insert data sau)
 
 ## 🔧 Configuration
 
