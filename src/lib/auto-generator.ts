@@ -151,33 +151,34 @@ export async function generateAndSaveArticle() {
     try {
         console.log(`📰 Fetching latest articles from CoinDesk...`);
 
-        // Get latest article URLs from CoinDesk homepage
-        const articleUrls = await getLatestCoinDeskArticles(10);
+        // Get more article URLs from CoinDesk homepage (increased from 10 to 50)
+        const articleUrls = await getLatestCoinDeskArticles(50);
 
         if (articleUrls.length === 0) {
             throw new Error("Không tìm thấy bài viết nào");
         }
 
-        // Pick a random article
-        const randomUrl = articleUrls[Math.floor(Math.random() * articleUrls.length)];
-
-        // Check if article already exists
-        const existing = await prisma.article.findFirst({
-            where: { sourceUrl: randomUrl }
+        // Get all existing article URLs to avoid duplicates
+        const existingArticles = await prisma.article.findMany({
+            select: { sourceUrl: true }
         });
+        const existingUrls = new Set(existingArticles.map(a => a.sourceUrl));
 
-        if (existing) {
-            console.log('⚠️ Article already exists, trying another...');
-            // Try another article
-            const anotherUrl = articleUrls[Math.floor(Math.random() * articleUrls.length)];
-            const anotherExisting = await prisma.article.findFirst({
-                where: { sourceUrl: anotherUrl }
+        // Filter out articles that already exist
+        const newUrls = articleUrls.filter(url => !existingUrls.has(url));
+
+        if (newUrls.length === 0) {
+            console.log('⚠️ All recent articles already exist in database');
+            const latest = await prisma.article.findFirst({
+                orderBy: { createdAt: 'desc' }
             });
-            if (anotherExisting) {
-                console.log('⚠️ All recent articles exist, returning latest');
-                return existing;
-            }
+            return latest!;
         }
+
+        console.log(`✅ Found ${newUrls.length} new articles to process`);
+
+        // Pick a random new article
+        const randomUrl = newUrls[Math.floor(Math.random() * newUrls.length)];
 
         // Scrape full article content
         const scrapedArticle = await scrapeCoinDeskArticle(randomUrl);
