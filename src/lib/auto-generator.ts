@@ -28,15 +28,18 @@ async function translateWithGemini(title: string, content: string): Promise<{ ti
 
     try {
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-2.0-flash",
+            model: "gemini-2.0-flash-exp",  // Latest experimental model with improved capabilities
             generationConfig: {
                 responseMimeType: "application/json",
+                temperature: 0.7,
+                topK: 40,
+                topP: 0.95,
             },
         });
 
         const prompt = `Bạn là một biên tập viên chuyên nghiệp về thị trường tiền điện tử và blockchain.
 
-Nhiệm vụ: Dịch và viết lại bài viết sau sang tiếng Việt một cách chi tiết, chuyên nghiệp và hấp dẫn.
+Nhiệm vụ: Dịch và viết lại bài viết sau sang tiếng Việt một cách TỰ NHIÊN, chuyên nghiệp và hấp dẫn.
 
 TIÊU ĐỀ GỐC:
 ${title}
@@ -45,63 +48,50 @@ NỘI DUNG GỐC:
 ${content}
 
 YÊU CẦU:
-1. Dịch tiêu đề sang tiếng Việt ngắn gọn, hấp dẫn, clickbait nhẹ
 
-2. Viết lại nội dung chi tiết sang tiếng Việt (800-1200 từ) với CẤU TRÚC RÕ RÀNG:
+1. **Dịch tiêu đề**: Sang tiếng Việt ngắn gọn, hấp dẫn, giữ ý nghĩa gốc
 
-   <h2>Tóm Tắt Nhanh</h2>
-   <p>Tóm tắt tin chính trong 2-3 câu ngắn gọn</p>
+2. **Viết lại nội dung** (800-1200 từ):
+   - QUAN TRỌNG: Giữ nguyên BỐ CỤC và CẤU TRÚC của bài gốc
+   - Dịch và mở rộng các phần theo thứ tự của bài nguồn
+   - Nếu bài gốc có 3 phần thì viết 3 phần, có 5 phần thì viết 5 phần
+   - KHÔNG tự ý thêm sections hoặc thay đổi cấu trúc
+   - Chỉ dịch và làm phong phú thêm nội dung đã có
+   - BẮT ĐẦU NGAY VỚI NỘI DUNG, không viết lại tiêu đề dưới dạng heading
+   - Heading đầu tiên phải là phần nội dung chính, KHÔNG phải nhắc lại title
 
-   <h2>Chi Tiết Sự Kiện</h2>
-   <p>Diễn giải chi tiết về sự kiện/tin tức chính. Bao gồm các thông tin quan trọng như:</p>
-   <ul>
-     <li>Điểm nào, khi nào, ai liên quan</li>
-     <li>Số liệu cụ thể (nếu có)</li>
-     <li>Nguyên nhân và diễn biến</li>
-   </ul>
-
-   <h2>Tác Động Đến Thị Trường</h2>
-   <p>Phân tích cách sự kiện này ảnh hưởng đến:</p>
-   <ul>
-     <li>Giá token/coin liên quan</li>
-     <li>Tâm lý nhà đầu tư</li>
-     <li>Xu hướng giao dịch</li>
-   </ul>
-
-   <h2>Ý Kiến Chuyên Gia</h2>
-   <p>Trích dẫn và phân tích ý kiến từ các chuyên gia trong bài gốc (nếu có)</p>
-
-   <h2>Bối Cảnh Và Xu Hướng</h2>
-   <p>Đặt sự kiện trong bối cảnh rộng hơn của thị trường crypto hiện tại</p>
-
-   <h2>Kết Luận</h2>
-   <p>Tóm lược và đưa ra nhận định về triển vọng tương lai</p>
-
-3. Phong cách viết:
-   - Chuyên nghiệp nhưng dễ hiểu
-   - Tự nhiên như người Việt viết, KHÔNG dịch máy
+3. **Phong cách viết**:
+   - Tự nhiên như người Việt viết, KHÔNG giống AI template
+   - Chuyên nghiệp nhưng dễ hiểu, không rườm rà
+   - Giữ nguyên tone và style của bài gốc
    - Sử dụng thuật ngữ crypto chính xác
-   - Thêm số liệu cụ thể từ bài gốc
-   - Dùng <strong> để nhấn mạnh từ khóa quan trọng
+   - Giữ nguyên số liệu, tên người, tên công ty từ bài gốc
 
-4. Định dạng HTML:
-   - <h2> cho tiêu đề chính các phần (QUAN TRỌNG!)
-   - <h3> cho tiêu đề phụ nếu cần
+4. **Định dạng HTML** (QUAN TRỌNG):
+   - <h2> cho các tiêu đề chính (theo bài gốc)
+   - <h3> cho tiêu đề phụ (nếu bài gốc có)
    - <p> cho đoạn văn
-   - <strong> cho nhấn mạnh
-   - <ul><li> cho danh sách
-   - <blockquote> cho trích dẫn
+   - <strong> để in đậm từ khóa quan trọng (VÍ DỤ: <strong>quá bán</strong>)
+   - <ul><li> cho danh sách (nếu phù hợp)
+   - <blockquote> cho trích dẫn (nếu có)
+   - TUYỆT ĐỐI KHÔNG dùng markdown ** hay __ cho in đậm, chỉ dùng <strong>
 
-5. Trả về JSON:
+5. **Trả về JSON**:
 {
   "title": "tiêu đề tiếng Việt",
-  "content": "nội dung HTML tiếng Việt đã viết lại với đầy đủ headings"
+  "content": "nội dung HTML tiếng Việt với cấu trúc tự nhiên theo bài gốc"
 }
 
 QUAN TRỌNG: 
-- Chỉ trả về JSON thuần, không thêm markdown code block hay text khác
-- BẮT BUỘC phải có ít nhất 5-6 thẻ <h2> trong content
-- Mỗi section phải có content đầy đủ, không viết sơ sài`;
+- Chỉ trả về JSON thuần, không thêm markdown code block
+- Phải có ít nhất 2-3 thẻ <h2> trong content (tùy theo bài gốc)
+- GIỮ NGUYÊN bố cục của bài gốc, KHÔNG ép theo template
+- Viết tự nhiên, không rập khuôn
+- KHÔNG nhắc lại tiêu đề trong heading đầu tiên của content
+- Content phải bắt đầu ngay bằng phần nội dung chính hoặc đoạn giới thiệu
+- KHÔNG dùng dấu ngoặc kép (") trong content, thay bằng dấu nháy đơn (')
+- In đậm phải dùng <strong>text</strong>, KHÔNG DÙNG **text**
+- Escape tất cả ký tự đặc biệt trong JSON`;
 
         const result = await model.generateContent(prompt);
         const response = result.response.text();
@@ -109,36 +99,88 @@ QUAN TRỌNG:
         // Try to extract and parse JSON from response
         let parsed;
         try {
-            // First, try to find JSON block
-            const jsonMatch = response.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
-                throw new Error('No JSON found in response');
-            }
+            // First, try direct JSON parsing (for JSON mode)
+            try {
+                parsed = JSON.parse(response);
+            } catch {
+                // If direct parsing fails, try to extract JSON from text
+                const jsonMatch = response.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) {
+                    throw new Error('No JSON found in response');
+                }
 
-            // Clean up common JSON issues
-            let jsonStr = jsonMatch[0];
-            
-            // Remove trailing commas before closing braces/brackets
-            jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
-            
-            // Fix unescaped quotes in strings (basic fix)
-            // This is a simple approach - may need more sophisticated handling
-            
-            parsed = JSON.parse(jsonStr);
+                let jsonStr = jsonMatch[0];
+                
+                // Advanced JSON cleaning
+                // 1. Remove trailing commas before closing braces/brackets
+                jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
+                
+                // 2. Fix common issues with quotes in Vietnamese text
+                // Replace problematic characters that might break JSON
+                jsonStr = jsonStr.replace(/[\u2018\u2019]/g, "'"); // Smart quotes to regular quotes
+                jsonStr = jsonStr.replace(/[\u201C\u201D]/g, '"'); // Smart double quotes
+                
+                // 3. Try parsing with cleaned string
+                try {
+                    parsed = JSON.parse(jsonStr);
+                } catch (e2) {
+                    // Last resort: try to extract just title and content fields
+                    const titleMatch = jsonStr.match(/"title"\s*:\s*"([^"]+(?:\\.[^"]*)*)"/);
+                    const contentMatch = jsonStr.match(/"content"\s*:\s*"([\s\S]*?)"\s*}/);
+                    
+                    if (titleMatch && contentMatch) {
+                        parsed = {
+                            title: titleMatch[1].replace(/\\"/g, '"'),
+                            content: contentMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n')
+                        };
+                    } else {
+                        throw e2;
+                    }
+                }
+            }
             
             if (!parsed.title || !parsed.content) {
                 throw new Error('Missing title or content in JSON');
             }
         } catch (parseError: any) {
             console.error('JSON Parse Error:', parseError.message);
-            console.error('Response preview:', response.substring(0, 500));
+            console.error('Response preview:', response.substring(0, 1000));
+            console.error('Response full length:', response.length);
             throw new Error(`Failed to parse Gemini response: ${parseError.message}`);
+        }
+
+        // Convert markdown bold to HTML strong (in case AI still uses markdown)
+        let cleanedContent = parsed.content;
+        
+        // Convert **text** to <strong>text</strong>
+        cleanedContent = cleanedContent.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        
+        // Convert __text__ to <strong>text</strong>
+        cleanedContent = cleanedContent.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+
+        // Remove first heading if it's too similar to title (to avoid duplication)
+        const firstHeadingMatch = cleanedContent.match(/<h2[^>]*>(.*?)<\/h2>/i);
+        if (firstHeadingMatch) {
+            const firstHeading = firstHeadingMatch[1].replace(/<[^>]+>/g, '').trim();
+            const titleText = parsed.title.replace(/<[^>]+>/g, '').trim();
+            
+            // Check similarity (simple approach: if heading contains 70% of title words)
+            const titleWords = titleText.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
+            const headingWords = firstHeading.toLowerCase().split(/\s+/);
+            const matchCount = titleWords.filter((word: string) => headingWords.some((hw: string) => hw.includes(word))).length;
+            const similarity = matchCount / Math.max(titleWords.length, 1);
+            
+            // If similarity > 0.6 (60%), remove the first heading
+            if (similarity > 0.6) {
+                console.log(`🔧 Removing duplicate first heading: "${firstHeading}"`);
+                cleanedContent = cleanedContent.replace(/<h2[^>]*>.*?<\/h2>/i, '').trim();
+            }
         }
 
         console.log('✅ Gemini AI translation successful');
         return {
             title: parsed.title,
-            content: parsed.content,
+            content: cleanedContent,
             success: true
         };
     } catch (error: any) {
@@ -148,7 +190,19 @@ QUAN TRỌNG:
 }
 
 export async function generateAndSaveArticle() {
+    const startTime = Date.now();
+    let logId: string | null = null;
+    
     try {
+        // Create generation log entry
+        const log = await prisma.generationLog.create({
+            data: {
+                status: 'running',
+                startedAt: new Date()
+            }
+        });
+        logId = log.id;
+        
         console.log(`📰 Fetching latest articles from CoinDesk...`);
 
         // Get more article URLs from CoinDesk homepage (increased from 10 to 50)
@@ -251,10 +305,41 @@ export async function generateAndSaveArticle() {
         });
 
         console.log(`✅ Article created: ${article.title} (Gemini AI)`);
+        
+        // Update log with success
+        if (logId) {
+            const duration = Date.now() - startTime;
+            await prisma.generationLog.update({
+                where: { id: logId },
+                data: {
+                    status: 'success',
+                    articlesCreated: 1,
+                    completedAt: new Date(),
+                    duration
+                }
+            });
+        }
+        
         return article;
 
     } catch (error) {
         console.error("Failed to generate article:", error);
+        
+        // Update log with failure
+        if (logId) {
+            const duration = Date.now() - startTime;
+            await prisma.generationLog.update({
+                where: { id: logId },
+                data: {
+                    status: 'failed',
+                    errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                    errorDetails: error instanceof Error ? error.stack : String(error),
+                    completedAt: new Date(),
+                    duration
+                }
+            });
+        }
+        
         throw error;
     }
 }

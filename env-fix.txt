@@ -1,0 +1,19 @@
+# ============================================
+# FIX: PostgreSQL Connection String
+# ============================================
+
+# ❌ INCORRECT (có thể gây lỗi permission):
+# DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/cryptopulse?schema=public"
+
+# ✅ CORRECT (bỏ schema=public):
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/cryptopulse"
+
+# Hoặc với search_path:
+# DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/cryptopulse?schema=public&search_path=public"
+
+# ============================================
+# Copy dòng DATABASE_URL bên dưới vào file .env của bạn:
+# ============================================
+
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/cryptopulse"
+

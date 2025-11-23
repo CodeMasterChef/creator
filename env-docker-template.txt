@@ -1,0 +1,21 @@
+# ============================================
+# PostgreSQL via Docker - Local Development
+# ============================================
+
+# Database Connection (Docker PostgreSQL)
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/cryptopulse?schema=public"
+
+# NextAuth Configuration
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key-change-this-in-production"
+
+# Admin Credentials
+ADMIN_EMAIL="admin@thuvientienso.com"
+ADMIN_PASSWORD="ChangeThisPassword123!"
+
+# API Keys
+GEMINI_API_KEY="your-gemini-api-key-here"
+
+# Auto-Generation Settings (Optional - now managed from Admin Dashboard)
+GENERATION_INTERVAL_HOURS=2
+

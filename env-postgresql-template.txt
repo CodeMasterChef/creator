@@ -1,0 +1,27 @@
+# ============================================
+# PostgreSQL Database Connection
+# ============================================
+# QUAN TRỌNG: Thay đổi dòng DATABASE_URL trong file .env của bạn
+
+# Option 1: Supabase (Khuyên dùng - Free tier)
+DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.xxx.supabase.co:5432/postgres?pgbouncer=true&connection_limit=1"
+
+# Option 2: Local PostgreSQL
+DATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/cryptopulse?schema=public"
+
+# Option 3: Neon (Serverless)
+DATABASE_URL="postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require"
+
+# Option 4: Railway
+DATABASE_URL="postgresql://postgres:password@containers-us-west-xxx.railway.app:7432/railway"
+
+# ============================================
+# Các biến khác giữ nguyên
+# ============================================
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key"
+ADMIN_EMAIL="admin@example.com"
+ADMIN_PASSWORD="your-password"
+GEMINI_API_KEY="your-gemini-key"
+GENERATION_INTERVAL_HOURS=2
+

@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -32,4 +32,22 @@ model Article {
   isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model GenerationLog {
+  id          String   @id @default(cuid())
+  status      String   // "success" or "failed"
+  articlesCreated Int   @default(0)
+  errorMessage String?
+  errorDetails String?  // Full error stack or details
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  duration    Int?     // Duration in milliseconds
+}
+
+model SystemSettings {
+  id                    String   @id @default(cuid())
+  autoGenerationEnabled Boolean  @default(true)  // ON/OFF switch for auto-generation
+  generationInterval    Int      @default(120)   // Interval in minutes (default: 120 = 2 hours)
+  updatedAt             DateTime @updatedAt
 }

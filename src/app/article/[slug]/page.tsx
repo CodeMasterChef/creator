@@ -7,6 +7,7 @@ import { vi } from "date-fns/locale";
 import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import ArticleAdminActions from "@/components/ArticleAdminActions";
+import { sanitizeArticleContent } from "@/lib/sanitize";
 
 interface Props {
     params: Promise<{ slug: string }>;
@@ -152,7 +153,7 @@ export default async function ArticlePage({ params, searchParams }: Props) {
 
             <div
                 className="article-content text-base sm:text-lg leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: article.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(article.content) }}
             />
 
             {/* Tags Section */}

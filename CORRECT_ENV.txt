@@ -1,0 +1,23 @@
+# ============================================
+# ✅ CORRECT DATABASE_URL (Copy vào .env)
+# ============================================
+
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/cryptopulse"
+
+# ============================================
+# ❌ WRONG - KHÔNG dùng những cái này:
+# ============================================
+
+# ❌ DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/cryptopulse?schema=public"
+# ❌ DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/cryptopulse.public"
+
+# ============================================
+# Các env khác (giữ nguyên):
+# ============================================
+
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key"
+ADMIN_EMAIL="admin@thuvientienso.com"
+ADMIN_PASSWORD="ChangeThisPassword123!"
+GEMINI_API_KEY="your-gemini-key"
+

@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { vi } from "date-fns/locale";
 import Link from "next/link";
 import { signOut } from "@/lib/auth";
@@ -11,6 +11,9 @@ import EditArticleButton from "@/components/EditArticleButton";
 import TogglePublishButton from "@/components/TogglePublishButton";
 import { LogOut, FileText, CheckCircle, Clock } from "lucide-react";
 import Image from "next/image";
+import IntervalSettings from "@/components/IntervalSettings";
+import GenerationLogsPanel from "@/components/GenerationLogsPanel";
+import AutoGenerationToggle from "@/components/AutoGenerationToggle";
 
 async function handleSignOut() {
     "use server";
@@ -57,6 +60,36 @@ export default async function AdminDashboard() {
 
     const duplicateArticleIds = new Set(Array.from(duplicateImages.values()).flat());
 
+    // Get system settings
+    let currentIntervalMinutes = 120; // default 2 hours
+    let autoGenerationEnabled = true; // default enabled
+    try {
+        const settings = await prisma.systemSettings.findFirst();
+        if (settings) {
+            currentIntervalMinutes = settings.generationInterval;
+            autoGenerationEnabled = settings.autoGenerationEnabled;
+        }
+    } catch (error) {
+        console.log('SystemSettings table not yet created. Using default.');
+    }
+
+    // Get generation logs (with fallback if table doesn't exist yet)
+    let generationLogs: any[] = [];
+    let successCount = 0;
+    let failedCount = 0;
+
+    try {
+        generationLogs = await prisma.generationLog.findMany({
+            orderBy: { startedAt: 'desc' },
+            take: 5 // Initial load: 5 logs
+        });
+
+        successCount = await prisma.generationLog.count({ where: { status: 'success' } });
+        failedCount = await prisma.generationLog.count({ where: { status: 'failed' } });
+    } catch (error) {
+        console.log('GenerationLog table not yet created. Run migration first.');
+    }
+
     const stats = {
         total: await prisma.article.count(),
         published: await prisma.article.count({ where: { isPublished: true } }),
@@ -77,16 +110,16 @@ export default async function AdminDashboard() {
                             Xin chào, {session.user?.email || 'Admin'}
                         </p>
                     </div>
-                    <form action={handleSignOut}>
+                <form action={handleSignOut}>
                         <button 
                             type="submit" 
                             className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors shadow-md hover:shadow-lg"
                         >
                             <LogOut className="w-4 h-4" />
-                            Đăng xuất
-                        </button>
-                    </form>
-                </div>
+                        Đăng xuất
+                    </button>
+                </form>
+            </div>
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8">
@@ -97,7 +130,7 @@ export default async function AdminDashboard() {
                             </div>
                         </div>
                         <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">
-                            {stats.total}
+                        {stats.total}
                         </div>
                         <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                             Tổng bài viết
@@ -109,9 +142,9 @@ export default async function AdminDashboard() {
                             <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
                                 <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
                             </div>
-                        </div>
+                </div>
                         <div className="text-3xl sm:text-4xl font-bold text-green-600 dark:text-green-400 mb-1">
-                            {stats.published}
+                        {stats.published}
                         </div>
                         <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                             Đã xuất bản
@@ -214,8 +247,11 @@ export default async function AdminDashboard() {
                     </div>
                 )}
 
+                {/* Auto-Generation Toggle */}
+                <AutoGenerationToggle initialEnabled={autoGenerationEnabled} />
+
                 {/* Generate Article Card */}
-                <div className="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-lg p-6 sm:p-8 mb-8 text-white">
+                <div className="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-lg p-6 sm:p-8 mb-8 mt-8 text-white">
                     <div className="flex items-start gap-4 mb-4">
                         <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,7 +260,7 @@ export default async function AdminDashboard() {
                         </div>
                         <div className="flex-1">
                             <h3 className="text-xl sm:text-2xl font-bold mb-2">
-                                📰 Tạo Bài Viết Mới
+                                📰 Tạo Bài Viết Mới (Thủ Công)
                             </h3>
                             <p className="text-sm sm:text-base text-blue-50 mb-4">
                                 Thu thập tin tức mới nhất từ CoinDesk và tự động dịch sang tiếng Việt. 
@@ -235,13 +271,23 @@ export default async function AdminDashboard() {
                     </div>
                 </div>
 
+                {/* Interval Settings Component */}
+                <IntervalSettings currentIntervalMinutes={currentIntervalMinutes} />
+
+                {/* Generation Logs Panel with Auto-Refresh */}
+                <GenerationLogsPanel 
+                    initialLogs={generationLogs}
+                    successCount={successCount}
+                    failedCount={failedCount}
+                />
+
                 {/* Articles Table */}
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
                     <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
                         <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
                             Bài viết gần đây
                         </h2>
-                    </div>
+            </div>
 
                     {articles.length === 0 ? (
                         <div className="p-8 sm:p-12 text-center">
@@ -376,26 +422,6 @@ export default async function AdminDashboard() {
                             </table>
                         </div>
                     )}
-                </div>
-
-                {/* Info Card */}
-                <div className="mt-8 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 sm:p-6">
-                    <div className="flex items-start gap-3">
-                        <div className="p-2 bg-yellow-100 dark:bg-yellow-800/30 rounded-lg">
-                            <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                            </svg>
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-sm sm:text-base font-semibold text-yellow-900 dark:text-yellow-100 mb-1">
-                                ⚡ Cập nhật tự động
-                            </h3>
-                            <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
-                                Hệ thống tự động thu thập tin tức từ CoinDesk mỗi 2 giờ. 
-                                Bài viết được dịch và xuất bản tự động lên trang chủ.
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
