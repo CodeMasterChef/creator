@@ -13,7 +13,14 @@ interface Article {
   author: string;
 }
 
-export default async function Home() {
+interface HomeProps {
+  searchParams: Promise<{ category?: string }>;
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const params = await searchParams;
+  const category = params.category || 'all';
+
   const articles: Article[] = await prisma.article.findMany({
     where: { isPublished: true },
     orderBy: { date: 'desc' },
@@ -34,10 +41,48 @@ export default async function Home() {
     );
   }
 
-  const hero = articles[0];
-  const featured = articles.slice(1, 4);
-  const latest = articles.slice(4, 10);
-  const grid = articles.slice(10);
+  // Filter articles by category based on title/content keywords
+  const filterByCategory = (articles: Article[], cat: string) => {
+    if (cat === 'all') return articles;
+    
+    const keywords: Record<string, string[]> = {
+      bitcoin: ['bitcoin', 'btc'],
+      ethereum: ['ethereum', 'eth', 'ether'],
+      xrp: ['xrp', 'ripple'],
+      market: ['market', 'thị trường', 'trading', 'giao dịch', 'price', 'giá']
+    };
+    
+    const catKeywords = keywords[cat] || [];
+    return articles.filter(article => {
+      const text = (article.title + ' ' + article.summary).toLowerCase();
+      return catKeywords.some(keyword => text.includes(keyword));
+    });
+  };
+
+  const filteredArticles = filterByCategory(articles, category);
+  
+  // If no articles match the filter, show empty state
+  if (filteredArticles.length === 0) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 px-4">
+        <div className="max-w-7xl mx-auto py-20 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            Không tìm thấy bài viết
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Chưa có bài viết nào trong danh mục này. Hãy thử danh mục khác!
+          </p>
+          <Link href="/" className="inline-block bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+            Xem tất cả bài viết
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Get articles for sidebar and main list
+  const latest = filteredArticles.slice(0, 6);  // For left sidebar
+  const mainArticles = filteredArticles;  // All articles for main section
 
   // Giả lập sentiment (random cho demo)
   const getSentiment = (idx: number) => {
@@ -94,9 +139,9 @@ export default async function Home() {
                         getSentiment(idx) === 'negative' ? 'text-red-600' : 
                         'text-gray-600'
                       }`}>
-                        {getSentiment(idx) === 'positive' ? 'Positive' : 
-                         getSentiment(idx) === 'negative' ? 'Negative' : 
-                         'Neutral'}
+                        {getSentiment(idx) === 'positive' ? 'Tích cực' : 
+                         getSentiment(idx) === 'negative' ? 'Tiêu cực' : 
+                         'Trung lập'}
                       </span>
                     </div>
                     
@@ -123,117 +168,68 @@ export default async function Home() {
               
               {/* Category Tabs - Scrollable on mobile */}
               <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-black dark:bg-primary text-white text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap">
+                <Link href="/?category=all" className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap transition-colors ${
+                  category === 'all' 
+                    ? 'bg-black dark:bg-primary text-white' 
+                    : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:text-white'
+                }`}>
                   Tất cả
-                </button>
-                <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-xs sm:text-sm font-semibold rounded-full hover:border-gray-400 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap dark:text-white">
+                </Link>
+                <Link href="/?category=bitcoin" className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full hover:border-gray-400 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap transition-colors ${
+                  category === 'bitcoin'
+                    ? 'bg-black dark:bg-primary text-white'
+                    : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 dark:text-white'
+                }`}>
                   <span className="text-orange-500">₿</span> Bitcoin
-                </button>
-                <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-xs sm:text-sm font-semibold rounded-full hover:border-gray-400 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap dark:text-white">
+                </Link>
+                <Link href="/?category=ethereum" className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full hover:border-gray-400 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap transition-colors ${
+                  category === 'ethereum'
+                    ? 'bg-black dark:bg-primary text-white'
+                    : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 dark:text-white'
+                }`}>
                   <span className="text-blue-500">◆</span> Ethereum
-                </button>
-                <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-xs sm:text-sm font-semibold rounded-full hover:border-gray-400 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap dark:text-white">
+                </Link>
+                <Link href="/?category=xrp" className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full hover:border-gray-400 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap transition-colors ${
+                  category === 'xrp'
+                    ? 'bg-black dark:bg-primary text-white'
+                    : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 dark:text-white'
+                }`}>
                   <span className="text-gray-700 dark:text-gray-300">✕</span> XRP
-                </button>
-                <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-xs sm:text-sm font-semibold rounded-full hover:border-gray-400 whitespace-nowrap dark:text-white">
+                </Link>
+                <Link href="/?category=market" className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full hover:border-gray-400 whitespace-nowrap transition-colors ${
+                  category === 'market'
+                    ? 'bg-black dark:bg-primary text-white'
+                    : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 dark:text-white'
+                }`}>
                   Thị trường
-                </button>
+                </Link>
               </div>
             </div>
 
-            {/* Hero Article */}
-            <article className="mb-4 sm:mb-6 lg:mb-8">
-              <Link href={`/article/${hero.id}`} className="group">
-                <div className="relative h-[250px] sm:h-[350px] lg:h-[480px] rounded-lg sm:rounded-xl overflow-hidden bg-gray-900">
-                  {hero.image && (
-                    <ArticleImage 
-                      src={hero.image} 
-                      alt={hero.title}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
-                  <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8">
-                    <span className="inline-block bg-gray-800 text-white text-xs font-semibold px-2 sm:px-3 py-1 rounded mb-2 sm:mb-3">
-                      Thị Trường
-                    </span>
-                    <h2 className="font-serif text-lg sm:text-2xl lg:text-4xl font-bold text-white mb-2 sm:mb-3 leading-tight group-hover:text-yellow-200 transition-colors line-clamp-2 sm:line-clamp-3">
-                      {hero.title}
-                    </h2>
-                    <p className="text-gray-200 text-sm sm:text-base lg:text-lg mb-2 sm:mb-3 line-clamp-2 hidden sm:block">
-                      {hero.summary}
-                    </p>
-                    <div className="text-xs sm:text-sm text-gray-400">
-                      {formatDistanceToNow(new Date(hero.date), { addSuffix: true, locale: vi })}
+            {/* Main Articles Grid - 2 columns */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              {mainArticles.map((article) => (
+                <article key={article.id}>
+                  <Link href={`/article/${article.id}`} className="group block">
+                    {/* Image */}
+                    <div className="relative aspect-[16/9] rounded-lg overflow-hidden mb-3 bg-gray-900">
+                      {article.image && (
+                        <ArticleImage 
+                          src={article.image} 
+                          alt={article.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      )}
                     </div>
-                  </div>
-                </div>
-              </Link>
-            </article>
 
-            {/* Featured Articles - Right Column List */}
-            <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
-              {featured.map((article) => (
-                <article key={article.id} className="border-b border-gray-200 dark:border-gray-700 pb-4 sm:pb-6">
-                  <Link href={`/article/${article.id}`} className="group">
-                    <span className="inline-block bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-semibold px-2 sm:px-3 py-1 rounded mb-2">
-                      Thị Trường
-                    </span>
-                    <h3 className="font-serif text-base sm:text-lg lg:text-xl font-bold leading-tight mb-2 group-hover:text-primary transition-colors dark:text-white line-clamp-3">
+                    {/* Title Only */}
+                    <h3 className="font-serif text-sm sm:text-base lg:text-lg font-bold text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-3">
                       {article.title}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base mb-2 line-clamp-2">
-                      {article.summary}
-                    </p>
-                    <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
-                      {formatDistanceToNow(new Date(article.date), { addSuffix: true, locale: vi })}
-                    </div>
                   </Link>
                 </article>
               ))}
             </div>
-
-            {/* View All Stories Button */}
-            <div className="mb-6 sm:mb-8">
-              <Link 
-                href="#" 
-                className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-              >
-                Xem tất cả
-                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            </div>
-
-            {/* Grid Articles */}
-            {grid.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {grid.slice(0, 6).map((article) => (
-                  <article key={article.id}>
-                    <Link href={`/article/${article.id}`} className="group block">
-                      <div className="relative h-40 sm:h-44 lg:h-48 rounded-lg overflow-hidden mb-2 sm:mb-3 bg-gradient-to-br from-yellow-400 via-pink-500 to-blue-500">
-                        {article.image && (
-                          <ArticleImage 
-                            src={article.image} 
-                            alt={article.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        )}
-                        {/* Yellow accent squares (like in CoinDesk) */}
-                        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex gap-1">
-                          <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400"></div>
-                          <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400"></div>
-                        </div>
-                      </div>
-                      <h3 className="font-serif text-sm sm:text-base font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2 dark:text-white">
-                        {article.title}
-                      </h3>
-                    </Link>
-                  </article>
-                ))}
-              </div>
-            )}
           </main>
         </div>
       </div>
