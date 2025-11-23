@@ -7,9 +7,9 @@ import ThemeToggle from "@/components/ThemeToggle";
 import UserMenu from "@/components/UserMenu";
 import { startAutoGeneration } from "@/lib/scheduler";
 
-// Start auto-generation on server startup
-if (typeof window === 'undefined') {
-  startAutoGeneration();
+// Start auto-generation on server startup (but not during build)
+if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
+  startAutoGeneration().catch(console.error);
 }
 
 const inter = Inter({ subsets: ["latin"] });
