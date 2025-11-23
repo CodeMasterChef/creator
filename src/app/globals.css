@@ -12,7 +12,7 @@
   --bg-secondary: #f9fafb;
   --text-primary: #18181b;
   --text-secondary: #6b7280;
-  --accent-primary: #2563eb;
+  --accent-primary: #F3C009;
   --accent-secondary: #e11d48;
 }
 
@@ -24,7 +24,7 @@
   --bg-secondary: #1e293b;
   --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
-  --accent-primary: #3b82f6;
+  --accent-primary: #F3C009;
   --accent-secondary: #ef4444;
 }
 
@@ -45,6 +45,83 @@ body {
 /* Serif font for headlines (newspaper style) */
 .font-serif {
   font-family: 'Merriweather', Georgia, 'Times New Roman', serif;
+}
+
+/* Article Content Styling */
+.article-content h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.article-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.875rem;
+  line-height: 1.3;
+  color: var(--text-primary);
+  border-left: 4px solid var(--accent-primary);
+  padding-left: 1rem;
+}
+
+.article-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+.article-content h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.625rem;
+  color: var(--text-primary);
+}
+
+.article-content p {
+  margin-bottom: 1rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+}
+
+.article-content ul,
+.article-content ol {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.article-content li {
+  margin-bottom: 0.5rem;
+  line-height: 1.7;
+}
+
+.article-content strong {
+  font-weight: 700;
+  color: inherit;
+}
+
+.article-content blockquote {
+  border-left: 4px solid var(--accent-secondary);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.article-content a {
+  color: var(--accent-primary);
+  text-decoration: underline;
+}
+
+.article-content a:hover {
+  color: var(--accent-secondary);
 }
 
 /* Smooth transitions */

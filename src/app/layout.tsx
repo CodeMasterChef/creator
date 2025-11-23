@@ -26,16 +26,20 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className={inter.className}>
-        <nav className="glass-nav sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
-          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '64px' }}>
-            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.25rem', fontWeight: 'bold', color: 'var(--text-primary)' }} className="sm:text-xl lg:text-2xl">
-              <Newspaper color="var(--accent-primary)" className="w-5 h-5 sm:w-6 sm:h-6" />
+        <nav className="glass-nav sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 flex justify-between items-center h-16">
+            <Link href="/" className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-gray-900 dark:text-white hover:text-primary transition-colors">
+              <Newspaper className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               <span className="hidden sm:inline">Thư Viện Tiền Số</span>
               <span className="sm:hidden">TVTS</span>
             </Link>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }} className="sm:gap-6">
-              <Link href="/" className="text-gray text-sm sm:text-base" style={{ transition: 'color 0.2s' }}>Trang Chủ</Link>
-              <Link href="/admin" className="text-gray text-sm sm:text-base" style={{ transition: 'color 0.2s' }}>Admin</Link>
+            <div className="flex gap-3 sm:gap-6 items-center">
+              <Link href="/" className="text-sm sm:text-base font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+                Trang Chủ
+              </Link>
+              <Link href="/admin" className="text-sm sm:text-base font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+                Admin
+              </Link>
               <ThemeToggle />
             </div>
           </div>

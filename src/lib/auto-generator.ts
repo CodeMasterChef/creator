@@ -28,11 +28,11 @@ async function translateWithGemini(title: string, content: string): Promise<{ ti
     }
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-        const prompt = `Bạn là một chuyên gia dịch thuật và viết lại nội dung về thị trường tiền điện tử.
+        const prompt = `Bạn là một biên tập viên chuyên nghiệp về thị trường tiền điện tử và blockchain.
 
-Nhiệm vụ: Dịch và viết lại bài viết sau sang tiếng Việt một cách tự nhiên, chuyên nghiệp và dễ hiểu.
+Nhiệm vụ: Dịch và viết lại bài viết sau sang tiếng Việt một cách chi tiết, chuyên nghiệp và hấp dẫn.
 
 TIÊU ĐỀ GỐC:
 ${title}
@@ -41,19 +41,63 @@ NỘI DUNG GỐC:
 ${content}
 
 YÊU CẦU:
-1. Dịch tiêu đề sang tiếng Việt ngắn gọn, hấp dẫn
-2. Viết lại nội dung sang tiếng Việt (khoảng 200-300 từ):
-   - Giữ nguyên ý chính
-   - Thêm phân tích và ngữ cảnh thị trường
-   - Sử dụng ngôn ngữ chuyên nghiệp nhưng dễ hiểu
-   - Không dịch máy móc, viết tự nhiên như người Việt
-3. Định dạng: Chỉ trả về JSON với format:
+1. Dịch tiêu đề sang tiếng Việt ngắn gọn, hấp dẫn, clickbait nhẹ
+
+2. Viết lại nội dung chi tiết sang tiếng Việt (800-1200 từ) với CẤU TRÚC RÕ RÀNG:
+
+   <h2>Tóm Tắt Nhanh</h2>
+   <p>Tóm tắt tin chính trong 2-3 câu ngắn gọn</p>
+
+   <h2>Chi Tiết Sự Kiện</h2>
+   <p>Diễn giải chi tiết về sự kiện/tin tức chính. Bao gồm các thông tin quan trọng như:</p>
+   <ul>
+     <li>Điểm nào, khi nào, ai liên quan</li>
+     <li>Số liệu cụ thể (nếu có)</li>
+     <li>Nguyên nhân và diễn biến</li>
+   </ul>
+
+   <h2>Tác Động Đến Thị Trường</h2>
+   <p>Phân tích cách sự kiện này ảnh hưởng đến:</p>
+   <ul>
+     <li>Giá token/coin liên quan</li>
+     <li>Tâm lý nhà đầu tư</li>
+     <li>Xu hướng giao dịch</li>
+   </ul>
+
+   <h2>Ý Kiến Chuyên Gia</h2>
+   <p>Trích dẫn và phân tích ý kiến từ các chuyên gia trong bài gốc (nếu có)</p>
+
+   <h2>Bối Cảnh Và Xu Hướng</h2>
+   <p>Đặt sự kiện trong bối cảnh rộng hơn của thị trường crypto hiện tại</p>
+
+   <h2>Kết Luận</h2>
+   <p>Tóm lược và đưa ra nhận định về triển vọng tương lai</p>
+
+3. Phong cách viết:
+   - Chuyên nghiệp nhưng dễ hiểu
+   - Tự nhiên như người Việt viết, KHÔNG dịch máy
+   - Sử dụng thuật ngữ crypto chính xác
+   - Thêm số liệu cụ thể từ bài gốc
+   - Dùng <strong> để nhấn mạnh từ khóa quan trọng
+
+4. Định dạng HTML:
+   - <h2> cho tiêu đề chính các phần (QUAN TRỌNG!)
+   - <h3> cho tiêu đề phụ nếu cần
+   - <p> cho đoạn văn
+   - <strong> cho nhấn mạnh
+   - <ul><li> cho danh sách
+   - <blockquote> cho trích dẫn
+
+5. Trả về JSON:
 {
   "title": "tiêu đề tiếng Việt",
-  "content": "nội dung tiếng Việt đã viết lại"
+  "content": "nội dung HTML tiếng Việt đã viết lại với đầy đủ headings"
 }
 
-QUAN TRỌNG: Chỉ trả về JSON, không thêm markdown hay text khác.`;
+QUAN TRỌNG: 
+- Chỉ trả về JSON thuần, không thêm markdown code block hay text khác
+- BẮT BUỘC phải có ít nhất 5-6 thẻ <h2> trong content
+- Mỗi section phải có content đầy đủ, không viết sơ sài`;
 
         const result = await model.generateContent(prompt);
         const response = result.response.text();
@@ -169,43 +213,39 @@ export async function generateAndSaveArticle() {
         // Create Vietnamese content with translated text
         const content = usedGemini ? `
             <article>
-                <div class="prose prose-lg">
+                <div class="prose prose-lg max-w-none">
                     ${contentVi}
                 </div>
-                
-                <div class="bg-gray-100 p-4 rounded-lg my-4">
-                    <h3 class="text-lg font-bold">Thông Tin Nhanh</h3>
-                    <ul class="list-disc pl-5">
-                        <li><strong>Nguồn:</strong> CoinDesk</li>
-                        <li><strong>Đã xuất bản:</strong> ${scrapedArticle.publishedDate.toLocaleString('vi-VN')}</li>
-                        <li><strong>Tác giả:</strong> ${scrapedArticle.author}</li>
-                    </ul>
-                </div>
 
-                <p><em><small>Bài viết này được viết lại bởi AI từ các nguồn bên ngoài. <a href="${scrapedArticle.url}" target="_blank" class="text-blue-600 hover:underline">Đọc bài gốc</a>.</small></em></p>
+                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 italic">
+                        <small>Bài viết này được tổng hợp và dịch từ các nguồn bên ngoài. Đọc gốc tại: <a href="${scrapedArticle.url}" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">CoinDesk</a>.</small>
+                    </p>
+                </div>
             </article>
         ` : `
             <article>
-                <p class="lead"><strong>${titleVi}</strong></p>
-                <p>${contentVi}</p>
-                
-                <h2>Bối Cảnh Thị Trường</h2>
-                <p>Sự phát triển này diễn ra vào thời điểm quan trọng đối với thị trường tiền điện tử. Các nhà phân tích đề nghị theo dõi các token liên quan để biết khả năng biến động.</p>
-                
-                <div class="bg-gray-100 p-4 rounded-lg my-4">
-                    <h3 class="text-lg font-bold">Thông Tin Nhanh</h3>
-                    <ul class="list-disc pl-5">
-                        <li><strong>Nguồn:</strong> CoinDesk</li>
-                        <li><strong>Đã xuất bản:</strong> ${scrapedArticle.publishedDate.toLocaleString('vi-VN')}</li>
-                        <li><strong>Tác giả:</strong> ${scrapedArticle.author}</li>
-                    </ul>
+                <p class="lead text-base sm:text-lg"><strong>${titleVi}</strong></p>
+                <div class="my-4">
+                    ${contentVi.split('\n\n').map(p => `<p class="mb-4">${p}</p>`).join('')}
                 </div>
+                
+                <h3 class="text-lg sm:text-xl font-bold mt-6 mb-3 dark:text-white">Bối Cảnh Thị Trường</h3>
+                <p class="mb-4">Sự phát triển này diễn ra vào thời điểm quan trọng đối với thị trường tiền điện tử. Các nhà phân tích đề nghị theo dõi các token liên quan để biết khả năng biến động.</p>
 
-                <p><em><small>Bài viết này được tổng hợp và dịch tự động từ các nguồn bên ngoài. <a href="${scrapedArticle.url}" target="_blank" class="text-blue-600 hover:underline">Đọc bài gốc</a>.</small></em></p>
+                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 italic">
+                        <small>Bài viết này được tổng hợp và dịch từ các nguồn bên ngoài. Đọc gốc tại: <a href="${scrapedArticle.url}" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">CoinDesk</a>.</small>
+                    </p>
+                </div>
             </article>
         `;
 
-        const summaryVi = contentVi.slice(0, 150) + "...";
+        // Strip HTML tags from content for summary
+        const stripHtml = (html: string) => {
+            return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        };
+        const summaryVi = stripHtml(contentVi).slice(0, 200) + "...";
 
         const article = await prisma.article.create({
             data: {
@@ -213,7 +253,7 @@ export async function generateAndSaveArticle() {
                 summary: summaryVi,
                 content: content,
                 image: image,
-                author: usedGemini ? "AI Writer (Gemini)" : "AI Aggregator",
+                author: "Tường An",
                 source: "CoinDesk",
                 sourceUrl: scrapedArticle.url,
                 isPublished: true,

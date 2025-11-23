@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2, Sparkles, CheckCircle, XCircle } from "lucide-react";
 
 export default function GenerateTestButton() {
     const [loading, setLoading] = useState(false);
@@ -19,8 +20,10 @@ export default function GenerateTestButton() {
             setResult(data);
 
             if (data.success) {
-                // Refresh the page to show new article
-                window.location.reload();
+                // Refresh the page to show new article after 2 seconds
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
             }
         } catch (error) {
             setResult({ success: false, error: 'Network error' });
@@ -34,33 +37,63 @@ export default function GenerateTestButton() {
             <button
                 onClick={handleGenerate}
                 disabled={loading}
-                className="btn-primary"
-                style={{ marginBottom: '1rem' }}
+                className={`
+                    flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm sm:text-base
+                    transition-all duration-200 shadow-md hover:shadow-lg
+                    ${loading 
+                        ? 'bg-white/50 cursor-not-allowed' 
+                        : 'bg-white text-gray-900 hover:bg-yellow-50 active:scale-95'
+                    }
+                `}
             >
-                {loading ? '🔄 Đang tạo bài...' : '📰 Tạo Bài Viết Mới'}
+                {loading ? (
+                    <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>Đang tạo bài viết...</span>
+                    </>
+                ) : (
+                    <>
+                        <Sparkles className="w-5 h-5" />
+                        <span>Tạo Bài Viết Mới</span>
+                    </>
+                )}
             </button>
 
             {result && (
-                <div style={{
-                    padding: '1rem',
-                    borderRadius: '8px',
-                    background: result.success ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                    border: `1px solid ${result.success ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
-                    marginTop: '1rem'
-                }}>
+                <div className={`
+                    mt-4 p-4 rounded-lg border-2 animate-fade-in
+                    ${result.success 
+                        ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' 
+                        : 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
+                    }
+                `}>
                     {result.success ? (
-                        <div>
-                            <div style={{ fontWeight: 'bold', color: '#10b981', marginBottom: '0.5rem' }}>
-                                ✅ Thành công!
-                            </div>
-                            <div className="text-sm">
-                                <strong>Tiêu đề:</strong> {result.article.title}<br />
-                                <strong>Nguồn:</strong> {result.article.source}
+                        <div className="flex items-start gap-3">
+                            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                                <div className="font-semibold text-green-800 dark:text-green-200 mb-2">
+                                    ✅ Tạo bài viết thành công!
+                                </div>
+                                <div className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                                    <p><strong>Tiêu đề:</strong> {result.article.title}</p>
+                                    <p><strong>Nguồn:</strong> {result.article.source}</p>
+                                    <p className="text-xs mt-2 text-green-600 dark:text-green-400">
+                                        Đang tải lại trang...
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     ) : (
-                        <div style={{ color: '#ef4444' }}>
-                            ❌ Lỗi: {result.error}
+                        <div className="flex items-start gap-3">
+                            <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1">
+                                <div className="font-semibold text-red-800 dark:text-red-200 mb-1">
+                                    ❌ Có lỗi xảy ra
+                                </div>
+                                <div className="text-sm text-red-700 dark:text-red-300">
+                                    {result.error}
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

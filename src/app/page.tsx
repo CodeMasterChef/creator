@@ -26,7 +26,7 @@ export default async function Home() {
         <div className="text-center p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg max-w-md w-full">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 dark:text-white">Chưa có bài viết</h2>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">Hãy quay lại sau để đọc tin tức mới nhất</p>
-          <Link href="/" className="inline-block bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-colors">
+          <Link href="/" className="inline-block bg-primary hover:bg-primary-dark text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold text-sm sm:text-base transition-colors">
             Tải lại trang
           </Link>
         </div>
@@ -102,7 +102,7 @@ export default async function Home() {
                     
                     {/* Article Link */}
                     <Link href={`/article/${article.id}`} className="group">
-                      <h3 className="font-serif text-base font-bold leading-tight mb-2 group-hover:text-blue-600 transition-colors">
+                      <h3 className="font-serif text-base font-bold leading-tight mb-2 group-hover:text-primary transition-colors">
                         {article.title}
                       </h3>
                       <p className="text-sm text-gray-600 line-clamp-2">
@@ -123,7 +123,7 @@ export default async function Home() {
               
               {/* Category Tabs - Scrollable on mobile */}
               <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-black dark:bg-blue-600 text-white text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap">
+                <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-black dark:bg-primary text-white text-xs sm:text-sm font-semibold rounded-full whitespace-nowrap">
                   Tất cả
                 </button>
                 <button className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-xs sm:text-sm font-semibold rounded-full hover:border-gray-400 flex items-center gap-1.5 sm:gap-2 whitespace-nowrap dark:text-white">
@@ -157,7 +157,7 @@ export default async function Home() {
                     <span className="inline-block bg-gray-800 text-white text-xs font-semibold px-2 sm:px-3 py-1 rounded mb-2 sm:mb-3">
                       Thị Trường
                     </span>
-                    <h2 className="font-serif text-lg sm:text-2xl lg:text-4xl font-bold text-white mb-2 sm:mb-3 leading-tight group-hover:text-blue-300 transition-colors line-clamp-2 sm:line-clamp-3">
+                    <h2 className="font-serif text-lg sm:text-2xl lg:text-4xl font-bold text-white mb-2 sm:mb-3 leading-tight group-hover:text-yellow-200 transition-colors line-clamp-2 sm:line-clamp-3">
                       {hero.title}
                     </h2>
                     <p className="text-gray-200 text-sm sm:text-base lg:text-lg mb-2 sm:mb-3 line-clamp-2 hidden sm:block">
@@ -179,7 +179,7 @@ export default async function Home() {
                     <span className="inline-block bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-semibold px-2 sm:px-3 py-1 rounded mb-2">
                       Thị Trường
                     </span>
-                    <h3 className="font-serif text-base sm:text-lg lg:text-xl font-bold leading-tight mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors dark:text-white line-clamp-3">
+                    <h3 className="font-serif text-base sm:text-lg lg:text-xl font-bold leading-tight mb-2 group-hover:text-primary transition-colors dark:text-white line-clamp-3">
                       {article.title}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base mb-2 line-clamp-2">
@@ -226,7 +226,7 @@ export default async function Home() {
                           <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400"></div>
                         </div>
                       </div>
-                      <h3 className="font-serif text-sm sm:text-base font-bold leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 dark:text-white">
+                      <h3 className="font-serif text-sm sm:text-base font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2 dark:text-white">
                         {article.title}
                       </h3>
                     </Link>

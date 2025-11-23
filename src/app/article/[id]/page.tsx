@@ -68,20 +68,24 @@ export default async function ArticlePage({ params }: Props) {
             </div>
 
             <div
-                className="article-content prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none"
-                style={{ fontSize: '0.95rem', lineHeight: '1.7', color: 'var(--text-primary)' }}
+                className="article-content text-base sm:text-lg leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: article.content }}
             />
 
             <div className="mt-8 sm:mt-12 lg:mt-16 pt-6 sm:pt-8 border-t border-gray-200 dark:border-gray-700">
                 <h3 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 dark:text-white">Về Biên Tập Viên</h3>
                 <div className="card bg-gray-50 dark:bg-gray-800 rounded-lg p-4 sm:p-6 flex items-center gap-3 sm:gap-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center text-white font-bold text-lg sm:text-xl lg:text-2xl flex-shrink-0">
-                        {article.author.charAt(0).toUpperCase()}
+                    <div className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full overflow-hidden flex-shrink-0 shadow-md ring-2 ring-primary/20">
+                        <Image
+                            src="/tuong-an-avatar.jpg"
+                            alt="Tường An"
+                            fill
+                            className="object-cover"
+                        />
                     </div>
                     <div>
-                        <p className="font-bold text-base sm:text-lg dark:text-white">{article.author}</p>
-                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Biên Tập Viên Tin Tức Crypto</p>
+                        <p className="font-bold text-base sm:text-lg dark:text-white">Tường An</p>
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Biên tập viên tin tức tại Thư Viện Tiền Số</p>
                     </div>
                 </div>
             </div>
