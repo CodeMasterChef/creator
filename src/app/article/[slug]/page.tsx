@@ -5,9 +5,11 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import type { Metadata } from "next";
+import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import ArticleAdminActions from "@/components/ArticleAdminActions";
 import { sanitizeArticleContent } from "@/lib/sanitize";
+import { generateArticleUrl } from "@/lib/slugify";
 
 interface Props {
     params: Promise<{ slug: string }>;
@@ -52,6 +54,37 @@ function extractTags(title: string, content: string): string[] {
     return foundTags.slice(0, 6); // Maximum 6 tags
 }
 
+async function getRelatedArticles(currentId: string, tags: string[]) {
+    const baseWhere: Prisma.ArticleWhereInput = {
+        isPublished: true,
+        id: { not: currentId },
+    };
+
+    const taggedWhere: Prisma.ArticleWhereInput = tags.length
+        ? {
+            ...baseWhere,
+            OR: tags.map(tag => ({
+                tags: { contains: tag },
+            })),
+        }
+        : baseWhere;
+
+    const related = await prisma.article.findMany({
+        where: taggedWhere,
+        orderBy: { date: "desc" },
+        take: 4,
+    });
+
+    if (related.length > 0 || tags.length === 0) return related;
+
+    // Fallback: newest articles
+    return prisma.article.findMany({
+        where: baseWhere,
+        orderBy: { date: "desc" },
+        take: 4,
+    });
+}
+
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     const { id } = await searchParams;
     if (!id) return { title: "Không tìm thấy" };
@@ -92,6 +125,9 @@ export default async function ArticlePage({ params, searchParams }: Props) {
 
     // Extract tags from article
     const tags = extractTags(article.title, article.content);
+
+    // Get related articles
+    const relatedArticles = await getRelatedArticles(article.id, tags);
 
     // Get category mapping for links
     const categoryMapping: Record<string, string> = {
@@ -141,12 +177,15 @@ export default async function ArticlePage({ params, searchParams }: Props) {
                 )}
             </div>
 
-            <div className="relative w-full h-48 sm:h-64 lg:h-96 rounded-lg sm:rounded-xl overflow-hidden mb-6 sm:mb-8 lg:mb-12">
+            <div
+                className="relative w-full rounded-lg sm:rounded-xl overflow-hidden mb-6 sm:mb-8 lg:mb-12 bg-gray-900/20 dark:bg-gray-800/40"
+                style={{ aspectRatio: "16 / 9" }}
+            >
                 <Image
                     src={article.image}
                     alt={article.title}
                     fill
-                    style={{ objectFit: 'cover' }}
+                    style={{ objectFit: 'contain' }}
                     priority
                 />
             </div>
@@ -168,6 +207,43 @@ export default async function ArticlePage({ params, searchParams }: Props) {
                                 className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-100 dark:bg-gray-800 hover:bg-primary hover:text-white dark:hover:bg-primary text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-semibold rounded-full transition-all hover:shadow-md"
                             >
                                 #{tag}
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {relatedArticles.length > 0 && (
+                <div className="mt-10 sm:mt-12 lg:mt-14">
+                    <div className="flex items-center justify-between mb-4 sm:mb-6">
+                        <h3 className="text-lg sm:text-xl font-bold dark:text-white">Đọc tiếp</h3>
+                        <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Gợi ý bài liên quan</span>
+                    </div>
+                    <div className="grid gap-4 sm:gap-5 md:grid-cols-3">
+                        {relatedArticles.map((related) => (
+                            <Link
+                                key={related.id}
+                                href={generateArticleUrl(related.title, related.id)}
+                                className="group bg-gray-50 dark:bg-gray-800/60 rounded-lg border border-transparent hover:border-primary/40 transition-all shadow-sm hover:shadow-md overflow-hidden"
+                            >
+                                <div className="relative w-full aspect-[16/9] bg-gray-200/60 dark:bg-gray-900">
+                                    {related.image && (
+                                        <Image
+                                            src={related.image}
+                                            alt={related.title}
+                                            fill
+                                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                        />
+                                    )}
+                                </div>
+                                <div className="p-3 space-y-1.5">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {format(new Date(related.date), "d MMMM, yyyy", { locale: vi })}
+                                    </p>
+                                    <p className="font-semibold text-sm sm:text-base dark:text-white line-clamp-2 group-hover:text-primary transition-colors">
+                                        {related.title}
+                                    </p>
+                                </div>
                             </Link>
                         ))}
                     </div>

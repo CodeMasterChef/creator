@@ -85,12 +85,6 @@ export default async function Home({ searchParams }: HomeProps) {
   const latest = filteredArticles.slice(0, 6);  // For left sidebar
   const mainArticles = filteredArticles;  // All articles for main section
 
-  // Giả lập sentiment (random cho demo)
-  const getSentiment = (idx: number) => {
-    const sentiments = ['positive', 'neutral', 'negative'];
-    return sentiments[idx % 3];
-  };
-
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Main Container - Full width on all devices */}
@@ -127,25 +121,7 @@ export default async function Home({ searchParams }: HomeProps) {
                     <div className="text-xs text-gray-500 mb-2">
                       {format(new Date(article.date), 'h:mm aa').toUpperCase()}
                     </div>
-                    
-                    {/* Sentiment Badge */}
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className={`w-2 h-2 rounded-full ${
-                        getSentiment(idx) === 'positive' ? 'bg-green-500' : 
-                        getSentiment(idx) === 'negative' ? 'bg-red-500' : 
-                        'bg-gray-400'
-                      }`}></span>
-                      <span className={`text-xs font-semibold ${
-                        getSentiment(idx) === 'positive' ? 'text-green-600' : 
-                        getSentiment(idx) === 'negative' ? 'text-red-600' : 
-                        'text-gray-600'
-                      }`}>
-                        {getSentiment(idx) === 'positive' ? 'Tích cực' : 
-                         getSentiment(idx) === 'negative' ? 'Tiêu cực' : 
-                         'Trung lập'}
-                      </span>
-                    </div>
-                    
+
                     {/* Article Link */}
                     <Link href={generateArticleUrl(article.title, article.id)} className="group">
                       <h3 className="font-serif text-base font-bold leading-tight mb-2 group-hover:text-primary transition-colors">
@@ -222,6 +198,11 @@ export default async function Home({ searchParams }: HomeProps) {
                         />
                       )}
                     </div>
+
+                    {/* Meta */}
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
+                      {format(new Date(article.date), "d 'tháng' MM, yyyy", { locale: vi })}
+                    </p>
 
                     {/* Title Only */}
                     <h3 className="font-serif text-sm sm:text-base lg:text-lg font-bold text-gray-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-3">
