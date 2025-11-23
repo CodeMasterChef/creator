@@ -95,10 +95,10 @@ export default async function Home({ searchParams }: HomeProps) {
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Main Container - Full width on all devices */}
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-4 sm:py-6 lg:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8" suppressHydrationWarning>
           
           {/* LEFT SIDEBAR - Latest News - Hidden on mobile, shown on lg+ */}
-          <aside className="hidden lg:block lg:col-span-3">
+          <aside className="hidden lg:block lg:col-span-3" suppressHydrationWarning>
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 lg:p-6 sticky top-6">
               {/* Header with RSS icon */}
               <div className="flex items-center justify-between mb-6">

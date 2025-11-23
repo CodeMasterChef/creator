@@ -5,8 +5,6 @@ import { X, Upload, Tag } from "lucide-react";
 import Image from "next/image";
 
 interface EditArticleModalProps {
-  isOpen: boolean;
-  onClose: () => void;
   article: {
     id: string;
     title: string;
@@ -16,17 +14,11 @@ interface EditArticleModalProps {
     tags: string | null;
     isPublished: boolean;
   };
-  onSave: (articleId: string, data: {
-    title: string;
-    slug: string;
-    content: string;
-    image: string;
-    tags: string;
-    isPublished: boolean;
-  }) => Promise<{ success: boolean; error?: string }>;
+  onClose: () => void;
 }
 
-export default function EditArticleModal({ isOpen, onClose, article, onSave }: EditArticleModalProps) {
+export default function EditArticleModal({ article, onClose }: EditArticleModalProps) {
+  const isOpen = true; // Always open when component is rendered
   const [formData, setFormData] = useState({
     title: article.title,
     slug: article.slug,
@@ -57,7 +49,17 @@ export default function EditArticleModal({ isOpen, onClose, article, onSave }: E
     setIsSaving(true);
 
     try {
-      const result = await onSave(article.id, formData);
+      const response = await fetch('/api/article/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: article.id,
+          ...formData
+        }),
+      });
+
+      const result = await response.json();
+
       if (result.success) {
         onClose();
         window.location.reload();
@@ -65,6 +67,7 @@ export default function EditArticleModal({ isOpen, onClose, article, onSave }: E
         alert("Lỗi khi cập nhật: " + (result.error || "Unknown error"));
       }
     } catch (error) {
+      console.error('Update error:', error);
       alert("Lỗi khi cập nhật bài viết");
     } finally {
       setIsSaving(false);

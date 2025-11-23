@@ -8,7 +8,9 @@ import { signOut } from "@/lib/auth";
 import GenerateTestButton from "@/components/GenerateTestButton";
 import DeleteArticleButton from "@/components/DeleteArticleButton";
 import EditArticleButton from "@/components/EditArticleButton";
+import TogglePublishButton from "@/components/TogglePublishButton";
 import { LogOut, FileText, CheckCircle, Clock } from "lucide-react";
+import Image from "next/image";
 
 async function handleSignOut() {
     "use server";
@@ -28,40 +30,6 @@ async function deleteArticle(articleId: string) {
     }
 }
 
-async function updateArticle(articleId: string, data: {
-    title: string;
-    slug: string;
-    content: string;
-    image: string;
-    tags: string;
-    isPublished: boolean;
-}) {
-    "use server";
-    try {
-        // Generate summary from content (first 200 chars without HTML)
-        const cleanContent = data.content.replace(/<[^>]*>/g, '');
-        const summary = cleanContent.substring(0, 200) + '...';
-
-        await prisma.article.update({
-            where: { id: articleId },
-            data: {
-                title: data.title,
-                slug: data.slug,
-                content: data.content,
-                image: data.image,
-                tags: data.tags,
-                summary: summary,
-                isPublished: data.isPublished,
-                updatedAt: new Date()
-            }
-        });
-        return { success: true };
-    } catch (error) {
-        console.error('Error updating article:', error);
-        return { success: false, error: 'Failed to update article' };
-    }
-}
-
 export default async function AdminDashboard() {
     const session = await auth();
 
@@ -70,14 +38,30 @@ export default async function AdminDashboard() {
     }
 
     const articles = await prisma.article.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 20
+        orderBy: { createdAt: 'desc' }
     });
+
+    // Check for duplicate images
+    const imageMap = new Map<string, string[]>();
+    articles.forEach(article => {
+        const existingIds = imageMap.get(article.image) || [];
+        imageMap.set(article.image, [...existingIds, article.id]);
+    });
+
+    const duplicateImages = new Map<string, string[]>();
+    imageMap.forEach((ids, imageUrl) => {
+        if (ids.length > 1) {
+            duplicateImages.set(imageUrl, ids);
+        }
+    });
+
+    const duplicateArticleIds = new Set(Array.from(duplicateImages.values()).flat());
 
     const stats = {
         total: await prisma.article.count(),
         published: await prisma.article.count({ where: { isPublished: true } }),
-        draft: await prisma.article.count({ where: { isPublished: false } })
+        draft: await prisma.article.count({ where: { isPublished: false } }),
+        duplicates: duplicateArticleIds.size
     };
 
     return (
@@ -105,7 +89,7 @@ export default async function AdminDashboard() {
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8">
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-between mb-4">
                             <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
@@ -147,7 +131,88 @@ export default async function AdminDashboard() {
                             Bản nháp
                         </div>
                     </div>
+
+                    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border ${
+                        stats.duplicates > 0 
+                            ? 'border-red-300 dark:border-red-700 ring-2 ring-red-200 dark:ring-red-900' 
+                            : 'border-gray-200 dark:border-gray-700'
+                    }`}>
+                        <div className="flex items-center justify-between mb-4">
+                            <div className={`p-3 rounded-lg ${
+                                stats.duplicates > 0 
+                                    ? 'bg-red-100 dark:bg-red-900/30' 
+                                    : 'bg-gray-100 dark:bg-gray-700'
+                            }`}>
+                                <svg className={`w-6 h-6 ${
+                                    stats.duplicates > 0 
+                                        ? 'text-red-600 dark:text-red-400' 
+                                        : 'text-gray-400'
+                                }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div className={`text-3xl sm:text-4xl font-bold mb-1 ${
+                            stats.duplicates > 0 
+                                ? 'text-red-600 dark:text-red-400' 
+                                : 'text-gray-600 dark:text-gray-400'
+                        }`}>
+                            {stats.duplicates}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                            Bài trùng lặp
+                        </div>
+                    </div>
                 </div>
+
+                {/* Duplicate Warning */}
+                {stats.duplicates > 0 && (
+                    <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-xl p-4 sm:p-6 mb-8">
+                        <div className="flex items-start gap-3">
+                            <div className="p-2 bg-red-100 dark:bg-red-800/30 rounded-lg flex-shrink-0">
+                                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg sm:text-xl font-bold text-red-900 dark:text-red-100 mb-2">
+                                    ⚠️ Phát Hiện {stats.duplicates} Bài Viết Trùng Lặp
+                                </h3>
+                                <p className="text-sm text-red-800 dark:text-red-200 mb-3">
+                                    Tìm thấy <strong>{duplicateImages.size} nhóm ảnh</strong> được sử dụng bởi nhiều bài viết. 
+                                    Các bài viết này có thể là nội dung trùng lặp.
+                                </p>
+                                <div className="space-y-2">
+                                    {Array.from(duplicateImages.entries()).slice(0, 3).map(([imageUrl, ids], index) => (
+                                        <div key={index} className="bg-white dark:bg-red-950/50 rounded-lg p-3 text-sm">
+                                            <div className="flex items-start gap-2 mb-2">
+                                                <span className="inline-flex items-center justify-center w-5 h-5 bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 rounded-full text-xs font-bold flex-shrink-0">
+                                                    {ids.length}
+                                                </span>
+                                                <div className="flex-1">
+                                                    <p className="text-xs text-gray-600 dark:text-gray-400 font-mono break-all">
+                                                        {imageUrl.slice(0, 80)}...
+                                                    </p>
+                                                    <p className="text-xs text-red-700 dark:text-red-300 mt-1">
+                                                        Được dùng bởi: {ids.slice(0, 3).map(id => {
+                                                            const article = articles.find(a => a.id === id);
+                                                            return article?.title.slice(0, 30) + '...';
+                                                        }).join(', ')}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {duplicateImages.size > 3 && (
+                                        <p className="text-xs text-red-700 dark:text-red-300 italic">
+                                            ... và {duplicateImages.size - 3} nhóm khác
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Generate Article Card */}
                 <div className="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-lg p-6 sm:p-8 mb-8 text-white">
@@ -195,6 +260,9 @@ export default async function AdminDashboard() {
                             <table className="w-full">
                                 <thead className="bg-gray-50 dark:bg-gray-700/50">
                                     <tr>
+                                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-20">
+                                            Ảnh
+                                        </th>
                                         <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                                             Tiêu đề
                                         </th>
@@ -213,10 +281,33 @@ export default async function AdminDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {articles.map((article) => (
-                                        <tr key={article.id} className="transition-all duration-150 group">
+                                    {articles.map((article) => {
+                                        const isDuplicate = duplicateArticleIds.has(article.id);
+                                        return (
+                                        <tr key={article.id} className={`transition-all duration-150 group ${
+                                            isDuplicate ? 'bg-red-50 dark:bg-red-950/20' : ''
+                                        }`}>
+                                            <td className="px-4 sm:px-6 py-4">
+                                                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
+                                                    <Image
+                                                        src={article.image}
+                                                        alt={article.title}
+                                                        fill
+                                                        className="object-cover"
+                                                        unoptimized
+                                                    />
+                                                </div>
+                                            </td>
                                             <td className="px-4 sm:px-6 py-4">
                                                 <div className="max-w-xs">
+                                                    {isDuplicate && (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 text-xs font-semibold rounded-full mb-1">
+                                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                            </svg>
+                                                            TRÙNG
+                                                        </span>
+                                                    )}
                                                     <div className="font-medium text-gray-900 dark:text-white text-sm sm:text-base line-clamp-2 mb-1">
                                                         {article.title}
                                                     </div>
@@ -265,7 +356,11 @@ export default async function AdminDashboard() {
                                                             tags: article.tags,
                                                             isPublished: article.isPublished
                                                         }}
-                                                        onUpdate={updateArticle}
+                                                    />
+                                                    <TogglePublishButton
+                                                        articleId={article.id}
+                                                        articleTitle={article.title}
+                                                        isPublished={article.isPublished}
                                                     />
                                                     <DeleteArticleButton 
                                                         articleId={article.id} 
@@ -275,7 +370,8 @@ export default async function AdminDashboard() {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
+                                    )})}
+
                                 </tbody>
                             </table>
                         </div>

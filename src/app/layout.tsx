@@ -4,6 +4,7 @@ import "./globals.css";
 import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "@/components/ThemeToggle";
+import UserMenu from "@/components/UserMenu";
 import { startAutoGeneration } from "@/lib/scheduler";
 
 // Start auto-generation on server startup
@@ -44,6 +45,7 @@ export default function RootLayout({
               <Link href="/" className="text-sm sm:text-base font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
                 Trang Chủ
               </Link>
+              <UserMenu />
               <ThemeToggle />
             </div>
           </div>

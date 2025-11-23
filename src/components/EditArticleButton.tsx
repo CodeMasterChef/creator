@@ -14,17 +14,9 @@ interface EditArticleButtonProps {
     tags: string | null;
     isPublished: boolean;
   };
-  onUpdate: (articleId: string, data: {
-    title: string;
-    slug: string;
-    content: string;
-    image: string;
-    tags: string;
-    isPublished: boolean;
-  }) => Promise<{ success: boolean; error?: string }>;
 }
 
-export default function EditArticleButton({ article, onUpdate }: EditArticleButtonProps) {
+export default function EditArticleButton({ article }: EditArticleButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -38,12 +30,12 @@ export default function EditArticleButton({ article, onUpdate }: EditArticleButt
         Sửa
       </button>
       
-      <EditArticleModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        article={article}
-        onSave={onUpdate}
-      />
+      {isModalOpen && (
+        <EditArticleModal
+          article={article}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </>
   );
 }

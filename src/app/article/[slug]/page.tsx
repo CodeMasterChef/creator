@@ -5,6 +5,8 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import type { Metadata } from "next";
+import { auth } from "@/lib/auth";
+import ArticleAdminActions from "@/components/ArticleAdminActions";
 
 interface Props {
     params: Promise<{ slug: string }>;
@@ -83,6 +85,10 @@ export default async function ArticlePage({ params, searchParams }: Props) {
         notFound();
     }
 
+    // Check if user is admin
+    const session = await auth();
+    const isAdmin = !!session;
+
     // Extract tags from article
     const tags = extractTags(article.title, article.content);
 
@@ -117,6 +123,21 @@ export default async function ArticlePage({ params, searchParams }: Props) {
                     <span className="hidden sm:inline">•</span>
                     <time>{format(new Date(article.date), "d MMMM, yyyy", { locale: vi })}</time>
                 </div>
+                
+                {/* Admin Actions */}
+                {isAdmin && (
+                    <ArticleAdminActions 
+                        article={{
+                            id: article.id,
+                            title: article.title,
+                            slug: article.slug || article.id,
+                            content: article.content,
+                            image: article.image,
+                            tags: article.tags,
+                            isPublished: article.isPublished
+                        }}
+                    />
+                )}
             </div>
 
             <div className="relative w-full h-48 sm:h-64 lg:h-96 rounded-lg sm:rounded-xl overflow-hidden mb-6 sm:mb-8 lg:mb-12">
