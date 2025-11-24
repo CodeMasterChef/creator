@@ -1,9 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { formatDistanceToNow, format } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
-import Link from "next/link";
 import { signOut } from "@/lib/auth";
 import GenerateTestButton from "@/components/GenerateTestButton";
 import DeleteArticleButton from "@/components/DeleteArticleButton";
@@ -14,6 +13,7 @@ import Image from "next/image";
 import IntervalSettings from "@/components/IntervalSettings";
 import GenerationLogsPanel from "@/components/GenerationLogsPanel";
 import AutoGenerationToggle from "@/components/AutoGenerationToggle";
+import AdminTabView from "@/components/AdminTabView";
 
 async function handleSignOut() {
     "use server";
@@ -97,158 +97,13 @@ export default async function AdminDashboard() {
         duplicates: duplicateArticleIds.size
     };
 
-    return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                            Admin Dashboard
-                        </h1>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Xin chào, {session.user?.email || 'Admin'}
-                        </p>
-                    </div>
-                <form action={handleSignOut}>
-                        <button 
-                            type="submit" 
-                            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors shadow-md hover:shadow-lg"
-                        >
-                            <LogOut className="w-4 h-4" />
-                        Đăng xuất
-                    </button>
-                </form>
-            </div>
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-8">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                                <FileText className="w-6 h-6 text-primary" />
-                            </div>
-                        </div>
-                        <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">
-                        {stats.total}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                            Tổng bài viết
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-                            </div>
-                </div>
-                        <div className="text-3xl sm:text-4xl font-bold text-green-600 dark:text-green-400 mb-1">
-                        {stats.published}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                            Đã xuất bản
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                                <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                            </div>
-                        </div>
-                        <div className="text-3xl sm:text-4xl font-bold text-amber-600 dark:text-amber-400 mb-1">
-                            {stats.draft}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                            Bản nháp
-                        </div>
-                    </div>
-
-                    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border ${
-                        stats.duplicates > 0 
-                            ? 'border-red-300 dark:border-red-700 ring-2 ring-red-200 dark:ring-red-900' 
-                            : 'border-gray-200 dark:border-gray-700'
-                    }`}>
-                        <div className="flex items-center justify-between mb-4">
-                            <div className={`p-3 rounded-lg ${
-                                stats.duplicates > 0 
-                                    ? 'bg-red-100 dark:bg-red-900/30' 
-                                    : 'bg-gray-100 dark:bg-gray-700'
-                            }`}>
-                                <svg className={`w-6 h-6 ${
-                                    stats.duplicates > 0 
-                                        ? 'text-red-600 dark:text-red-400' 
-                                        : 'text-gray-400'
-                                }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                            </div>
-                        </div>
-                        <div className={`text-3xl sm:text-4xl font-bold mb-1 ${
-                            stats.duplicates > 0 
-                                ? 'text-red-600 dark:text-red-400' 
-                                : 'text-gray-600 dark:text-gray-400'
-                        }`}>
-                            {stats.duplicates}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                            Bài trùng lặp
-                        </div>
-                    </div>
-                </div>
-
-                {/* Duplicate Warning */}
-                {stats.duplicates > 0 && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-xl p-4 sm:p-6 mb-8">
-                        <div className="flex items-start gap-3">
-                            <div className="p-2 bg-red-100 dark:bg-red-800/30 rounded-lg flex-shrink-0">
-                                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="text-lg sm:text-xl font-bold text-red-900 dark:text-red-100 mb-2">
-                                    ⚠️ Phát Hiện {stats.duplicates} Bài Viết Trùng Lặp
-                                </h3>
-                                <p className="text-sm text-red-800 dark:text-red-200 mb-3">
-                                    Tìm thấy <strong>{duplicateImages.size} nhóm ảnh</strong> được sử dụng bởi nhiều bài viết. 
-                                    Các bài viết này có thể là nội dung trùng lặp.
-                                </p>
-                                <div className="space-y-2">
-                                    {Array.from(duplicateImages.entries()).slice(0, 3).map(([imageUrl, ids], index) => (
-                                        <div key={index} className="bg-white dark:bg-red-950/50 rounded-lg p-3 text-sm">
-                                            <div className="flex items-start gap-2 mb-2">
-                                                <span className="inline-flex items-center justify-center w-5 h-5 bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 rounded-full text-xs font-bold flex-shrink-0">
-                                                    {ids.length}
-                                                </span>
-                                                <div className="flex-1">
-                                                    <p className="text-xs text-gray-600 dark:text-gray-400 font-mono break-all">
-                                                        {imageUrl.slice(0, 80)}...
-                                                    </p>
-                                                    <p className="text-xs text-red-700 dark:text-red-300 mt-1">
-                                                        Được dùng bởi: {ids.slice(0, 3).map(id => {
-                                                            const article = articles.find(a => a.id === id);
-                                                            return article?.title.slice(0, 30) + '...';
-                                                        }).join(', ')}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {duplicateImages.size > 3 && (
-                                        <p className="text-xs text-red-700 dark:text-red-300 italic">
-                                            ... và {duplicateImages.size - 3} nhóm khác
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Combined control card */}
-                <div className="mb-8 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800 p-5 sm:p-6">
+    const settingsContent = (
+        <>
+            <div className="mb-8">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    Tự Động Cập Nhật
+                </h2>
+                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800 p-5 sm:p-6">
                     <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 items-start">
                         <div className="lg:col-span-2 space-y-3">
                             <AutoGenerationToggle initialEnabled={autoGenerationEnabled} variant="inline" />
@@ -279,63 +134,200 @@ export default async function AdminDashboard() {
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Generation Logs Panel with Auto-Refresh */}
-                <GenerationLogsPanel 
+            <div>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    Lịch Sử Tạo Bài Tự Động
+                </h2>
+                <GenerationLogsPanel
                     initialLogs={generationLogs}
                     successCount={successCount}
                     failedCount={failedCount}
                 />
+            </div>
+        </>
+    );
 
-                {/* Articles Table */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
-                        <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                            Bài viết gần đây
-                        </h2>
+    const articlesContent = (
+        <>
+            <div className="mb-8">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">
+                    Thống kê bài viết
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                                <FileText className="w-6 h-6 text-primary" />
+                            </div>
+                        </div>
+                        <div className="text-3xl sm:text-4xl font-bold text-primary mb-1">
+                            {stats.total}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                            Tổng bài viết
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                            </div>
+                        </div>
+                        <div className="text-3xl sm:text-4xl font-bold text-green-600 dark:text-green-400 mb-1">
+                            {stats.published}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                            Đã xuất bản
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                                <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                            </div>
+                        </div>
+                        <div className="text-3xl sm:text-4xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+                            {stats.draft}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                            Bản nháp
+                        </div>
+                    </div>
+
+                    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border ${
+                        stats.duplicates > 0
+                            ? 'border-red-300 dark:border-red-700 ring-2 ring-red-200 dark:ring-red-900'
+                            : 'border-gray-200 dark:border-gray-700'
+                    }`}>
+                        <div className="flex items-center justify-between mb-4">
+                            <div className={`${
+                                stats.duplicates > 0
+                                    ? 'p-3 rounded-lg bg-red-100 dark:bg-red-900/30'
+                                    : 'p-3 rounded-lg bg-gray-100 dark:bg-gray-700'
+                            }`}>
+                                <svg className={`${
+                                    stats.duplicates > 0
+                                        ? 'w-6 h-6 text-red-600 dark:text-red-400'
+                                        : 'w-6 h-6 text-gray-400'
+                                }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div className={`text-3xl sm:text-4xl font-bold mb-1 ${
+                            stats.duplicates > 0
+                                ? 'text-red-600 dark:text-red-400'
+                                : 'text-gray-600 dark:text-gray-400'
+                        }`}>
+                            {stats.duplicates}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                            Bài trùng lặp
+                        </div>
+                    </div>
+                </div>
             </div>
 
-                    {articles.length === 0 ? (
-                        <div className="p-8 sm:p-12 text-center">
-                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <FileText className="w-8 h-8 text-gray-400" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                Chưa có bài viết nào
-                            </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                                Nhấn nút "Tạo Bài Viết Mới" ở trên để bắt đầu
-                            </p>
+            {stats.duplicates > 0 && (
+                <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-xl p-4 sm:p-6 mb-8">
+                    <div className="flex items-start gap-3">
+                        <div className="p-2 bg-red-100 dark:bg-red-800/30 rounded-lg flex-shrink-0">
+                            <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
                         </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-gray-700/50">
-                                    <tr>
-                                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-20">
-                                            Ảnh
-                                        </th>
-                                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            Tiêu đề
-                                        </th>
-                                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider hidden md:table-cell">
-                                            Nguồn
-                                        </th>
-                                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider hidden lg:table-cell">
-                                            Ngày tạo
-                                        </th>
-                                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            Trạng thái
-                                        </th>
-                                        <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                                            Thao tác
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {articles.map((article) => {
-                                        const isDuplicate = duplicateArticleIds.has(article.id);
-                                        return (
+                        <div className="flex-1">
+                            <h3 className="text-lg sm:text-xl font-bold text-red-900 dark:text-red-100 mb-2">
+                                ⚠️ Phát Hiện {stats.duplicates} Bài Viết Trùng Lặp
+                            </h3>
+                            <p className="text-sm text-red-800 dark:text-red-200 mb-3">
+                                Tìm thấy <strong>{duplicateImages.size} nhóm ảnh</strong> được sử dụng bởi nhiều bài viết. 
+                                Các bài viết này có thể là nội dung trùng lặp.
+                            </p>
+                            <div className="space-y-2">
+                                {Array.from(duplicateImages.entries()).slice(0, 3).map(([imageUrl, ids], index) => (
+                                    <div key={index} className="bg-white dark:bg-red-950/50 rounded-lg p-3 text-sm">
+                                        <div className="flex items-start gap-2 mb-2">
+                                            <span className="inline-flex items-center justify-center w-5 h-5 bg-red-200 dark:bg-red-800 text-red-800 dark:text-red-200 rounded-full text-xs font-bold flex-shrink-0">
+                                                {ids.length}
+                                            </span>
+                                            <div className="flex-1">
+                                                <p className="text-xs text-gray-600 dark:text-gray-400 font-mono break-all">
+                                                    {imageUrl.slice(0, 80)}...
+                                                </p>
+                                                <p className="text-xs text-red-700 dark:text-red-300 mt-1">
+                                                    Được dùng bởi: {ids.slice(0, 3).map(id => {
+                                                        const article = articles.find(a => a.id === id);
+                                                        return article?.title.slice(0, 30) + '...';
+                                                    }).join(', ')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {duplicateImages.size > 3 && (
+                                    <p className="text-xs text-red-700 dark:text-red-300 italic">
+                                        ... và {duplicateImages.size - 3} nhóm khác
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                        Bài viết gần đây
+                    </h2>
+                </div>
+
+                {articles.length === 0 ? (
+                    <div className="p-8 sm:p-12 text-center">
+                        <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <FileText className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                            Chưa có bài viết nào
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Nhấn nút "Tạo Bài Viết Mới" ở trên để bắt đầu
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gray-50 dark:bg-gray-700/50">
+                                <tr>
+                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider w-20">
+                                        Ảnh
+                                    </th>
+                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                        Tiêu đề
+                                    </th>
+                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider hidden md:table-cell">
+                                        Nguồn
+                                    </th>
+                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider hidden lg:table-cell">
+                                        Ngày tạo
+                                    </th>
+                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                        Trạng thái
+                                    </th>
+                                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                                        Thao tác
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                {articles.map((article) => {
+                                    const isDuplicate = duplicateArticleIds.has(article.id);
+                                    return (
                                         <tr key={article.id} className={`transition-all duration-150 group ${
                                             isDuplicate ? 'bg-red-50 dark:bg-red-950/20' : ''
                                         }`}>
@@ -422,13 +414,41 @@ export default async function AdminDashboard() {
                                                 </div>
                                             </td>
                                         </tr>
-                                    )})}
+                                    );
+                                })}
 
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        </>
+    );
+
+    return (
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="max-w-7xl mx-auto">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                            Admin Dashboard
+                        </h1>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Xin chào, {session.user?.email || 'Admin'}
+                        </p>
+                    </div>
+                    <form action={handleSignOut}>
+                        <button 
+                            type="submit" 
+                            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors shadow-md hover:shadow-lg"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            Đăng xuất
+                        </button>
+                    </form>
                 </div>
+
+                <AdminTabView settings={settingsContent} articles={articlesContent} />
             </div>
         </div>
     );

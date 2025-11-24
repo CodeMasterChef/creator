@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { X, Upload, Tag } from "lucide-react";
 import Image from "next/image";
 import { Editor } from "@tinymce/tinymce-react";
@@ -31,6 +31,8 @@ export default function EditArticleModal({ article, onClose }: EditArticleModalP
   const [isSaving, setIsSaving] = useState(false);
   const [imagePreview, setImagePreview] = useState(article.image);
   const [isDark, setIsDark] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -93,6 +95,38 @@ export default function EditArticleModal({ article, onClose }: EditArticleModalP
   const handleImageUrlChange = (url: string) => {
     setFormData({ ...formData, image: url });
     setImagePreview(url);
+  };
+
+  const handleLocalImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadError(null);
+    setIsUploading(true);
+
+    try {
+      const data = new FormData();
+      data.append("image", file);
+
+      const response = await fetch("/api/upload-image", {
+        method: "POST",
+        body: data,
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result.success || !result.url) {
+        throw new Error(result.error || "Upload failed");
+      }
+
+      setFormData(prev => ({ ...prev, image: result.url }));
+      setImagePreview(result.url);
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      setUploadError(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setIsUploading(false);
+      event.target.value = "";
+    }
   };
 
   // Auto-generate slug from title
@@ -264,13 +298,35 @@ export default function EditArticleModal({ article, onClose }: EditArticleModalP
                     Ảnh Đại Diện
                   </label>
                   <input
-                    type="url"
+                    type="text"
+                    inputMode="url"
                     value={formData.image}
                     onChange={(e) => handleImageUrlChange(e.target.value)}
                     placeholder="https://example.com/image.jpg"
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                     required
                   />
+                  <div className="mt-3">
+                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                      Hoặc tải ảnh lên máy chủ
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLocalImageUpload}
+                      className="w-full text-sm text-gray-600 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/80 file:text-gray-900 hover:file:bg-primary cursor-pointer"
+                      disabled={isUploading}
+                    />
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                      Kích thước tối đa 5MB. Ảnh sẽ được lưu tại /uploads trên server.
+                    </p>
+                    {isUploading && (
+                      <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">Đang tải ảnh...</p>
+                    )}
+                    {uploadError && (
+                      <p className="mt-1 text-xs text-red-600 dark:text-red-400">{uploadError}</p>
+                    )}
+                  </div>
                   {imagePreview && (
                     <div className="mt-3 relative w-full h-40 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
                       <Image

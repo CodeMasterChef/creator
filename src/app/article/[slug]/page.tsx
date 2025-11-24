@@ -10,17 +10,80 @@ import { auth } from "@/lib/auth";
 import ArticleAdminActions from "@/components/ArticleAdminActions";
 import { sanitizeArticleContent } from "@/lib/sanitize";
 import { generateArticleUrl } from "@/lib/slugify";
+import * as cheerio from "cheerio";
 
 interface Props {
     params: Promise<{ slug: string }>;
     searchParams: Promise<{ id?: string }>;
 }
 
-async function getArticle(id: string) {
-    const article = await prisma.article.findUnique({
-        where: { id }
-    });
-    return article;
+async function getArticleById(id: string) {
+    return prisma.article.findUnique({ where: { id } });
+}
+
+async function getArticleBySlug(slug: string) {
+    return prisma.article.findUnique({ where: { slug } });
+}
+
+// Remove existing source attribution blocks and keep the rest intact
+function stripSourceAttribution(html: string): string {
+    try {
+        const $ = cheerio.load(html, null, false);
+        const phrases = [
+            'Bài viết này được tổng hợp',
+            'Đọc gốc tại',
+            'Đọc bài gốc',
+            'Nguồn:'
+        ];
+
+        ['p', 'small', 'em', 'div'].forEach(selector => {
+            $(selector).each((_, element) => {
+                const text = $(element).text();
+                if (phrases.some(phrase => text.includes(phrase))) {
+                    $(element).remove();
+                }
+            });
+        });
+
+        return $.root().html()?.trim() || '';
+    } catch (error) {
+        console.error('stripSourceAttribution failed', error);
+        return html;
+    }
+}
+
+// Remove inline font declarations to align with site typography
+function normalizeArticleFonts(html: string): string {
+    try {
+        const $ = cheerio.load(html, null, false);
+        $('[style]').each((_, element) => {
+            const styleAttr = $(element).attr('style');
+            if (!styleAttr) return;
+
+            const declarations = styleAttr
+                .split(';')
+                .map(decl => decl.trim())
+                .filter(Boolean);
+
+            const filtered = declarations.filter(decl => {
+                const [prop] = decl.split(':');
+                if (!prop) return false;
+                const property = prop.trim().toLowerCase();
+                return property !== 'font-family' && property !== 'font';
+            });
+
+            if (filtered.length === 0) {
+                $(element).removeAttr('style');
+            } else {
+                $(element).attr('style', filtered.join('; '));
+            }
+        });
+
+        return $.root().html() || '';
+    } catch (error) {
+        console.error('normalizeArticleFonts failed', error);
+        return html;
+    }
 }
 
 // Extract tags from article title and content
@@ -87,9 +150,12 @@ async function getRelatedArticles(currentId: string, tags: string[]) {
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
     const { id } = await searchParams;
-    if (!id) return { title: "Không tìm thấy" };
-    
-    const article = await getArticle(id);
+    const { slug } = await params;
+
+    const article = id
+        ? await getArticleById(id)
+        : await getArticleBySlug(slug);
+
     if (!article) return { title: "Không tìm thấy" };
 
     return {
@@ -108,45 +174,22 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 export default async function ArticlePage({ params, searchParams }: Props) {
     const { id } = await searchParams;
-    
-    if (!id) {
-        notFound();
-    }
-    
-    const article = await getArticle(id);
+    const { slug } = await params;
 
-    if (!article) {
-        notFound();
-    }
+    const article = id
+        ? await getArticleById(id)
+        : await getArticleBySlug(slug);
+
+    if (!article) notFound();
 
     // Check if user is admin
     const session = await auth();
     const isAdmin = !!session;
 
-    // Remove source link from content (always remove from content, we'll add it separately below)
-    let displayContent = article.content;
-    
-    // Remove any div containing source attribution
-    displayContent = displayContent.replace(
-        /<div[^>]*>[\s\S]*?(?:Bài viết này được tổng hợp|Đọc gốc tại|Đọc bài gốc)[\s\S]*?<\/div>/gi,
-        ''
-    );
-    
-    // Remove any small tags containing source attribution
-    displayContent = displayContent.replace(
-        /<small[^>]*>[\s\S]*?(?:Bài viết này được tổng hợp|Đọc gốc tại|Đọc bài gốc)[\s\S]*?<\/small>/gi,
-        ''
-    );
-    
-    // Remove any paragraph containing source attribution
-    displayContent = displayContent.replace(
-        /<p[^>]*>[\s\S]*?(?:Bài viết này được tổng hợp|Đọc gốc tại|Đọc bài gốc)[\s\S]*?<\/p>/gi,
-        ''
-    );
-    
-    // Clean up any remaining empty tags or whitespace
-    displayContent = displayContent.replace(/<div[^>]*>\s*<\/div>/gi, '');
-    displayContent = displayContent.replace(/<p[^>]*>\s*<\/p>/gi, '');
+    const cleanedContent = stripSourceAttribution(article.content).trim();
+    const displayContent = cleanedContent || article.content;
+    const sanitizedContent = sanitizeArticleContent(displayContent);
+    const normalizedContent = normalizeArticleFonts(sanitizedContent);
 
     // Extract tags from article
     const tags = extractTags(article.title, article.content);
@@ -180,6 +223,11 @@ export default async function ArticlePage({ params, searchParams }: Props) {
                     Tin Tức
                 </span>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl dark:text-white" style={{ marginTop: '0.75rem', lineHeight: '1.1', fontWeight: 'bold' }}>{article.title}</h1>
+                {article.summary && (
+                    <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 mt-4 sm:mt-6 max-w-3xl mx-auto leading-relaxed" style={{ fontStyle: 'italic' }}>
+                        {article.summary}
+                    </p>
+                )}
                 <div className="text-gray text-xs sm:text-sm" style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <span>Biên tập: {article.author}</span>
                     <span className="hidden sm:inline">•</span>
@@ -217,12 +265,12 @@ export default async function ArticlePage({ params, searchParams }: Props) {
 
             <div
                 className="article-content text-base sm:text-lg leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(displayContent) }}
+                dangerouslySetInnerHTML={{ __html: normalizedContent }}
             />
 
             {/* Source Attribution - Always visible, link only for admin */}
-            <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 italic">
+            <div className="mt-8 sm:mt-10">
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 italic">
                     Bài viết này được tổng hợp và dịch từ các nguồn bên ngoài.
                     {isAdmin && article.sourceUrl && (
                         <>
