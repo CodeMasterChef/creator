@@ -15,6 +15,17 @@ if (typeof window === 'undefined' && process.env.NODE_ENV !== 'production') {
 
 const inter = Inter({ subsets: ["latin"] });
 
+// Generate version string in format: v.yyyy.mm.dd.hh.mm
+function getVersion(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `v.${year}.${month}.${day}.${hours}.${minutes}`;
+}
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://thuvientienso.com'),
   title: {
@@ -178,6 +189,9 @@ export default function RootLayout({
             <div className="mt-8 pt-8 border-t border-gray-800 text-center">
               <p className="text-xs text-gray-500">
                 &copy; 2025 Thư Viện Tiền Số. Mọi quyền được bảo lưu.
+              </p>
+              <p className="text-xs text-gray-600 mt-2">
+                {getVersion()}
               </p>
             </div>
           </div>

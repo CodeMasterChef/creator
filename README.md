@@ -86,19 +86,19 @@ Mở [http://localhost:3000](http://localhost:3000) trong browser.
 
 ### 🚀 Production Setup (Vercel)
 
-**Môi trường:** PostgreSQL database, file `.env.vercel` (local testing) hoặc Vercel Environment Variables
+**Môi trường:** PostgreSQL database, file `.env.production` (local testing) hoặc Vercel Environment Variables
 
 #### Lần đầu tiên setup database:
 
 ```bash
-# 1. Tạo file .env.vercel với DATABASE_URL từ Vercel Postgres
+# 1. Tạo file .env.production với DATABASE_URL từ Vercel Postgres
 # DATABASE_URL="postgresql://user:password@host:5432/db"
 
 # 2. Generate Prisma Client với Vercel env
 npm run prisma:generate:vercel
 
 # 3. Deploy migrations (tạo tables trong PostgreSQL)
-npx dotenv -e .env.vercel -- npx prisma migrate deploy
+npx dotenv -e .env.production -- npx prisma migrate deploy
 
 # 4. Seed database (tạo admin user - chỉ chạy 1 lần)
 npm run db:seed:vercel
@@ -111,17 +111,17 @@ npm run db:seed:vercel
 npx prisma migrate dev --name your_migration_name
 
 # 2. Deploy migration lên production
-npx dotenv -e .env.vercel -- npx prisma migrate deploy
+npx dotenv -e .env.production -- npx prisma migrate deploy
 ```
 
 #### Test production build locally:
 
 ```bash
 # Build với production env
-npx dotenv -e .env.vercel -- npm run build
+npx dotenv -e .env.production -- npm run build
 
 # Start production server
-npx dotenv -e .env.vercel -- npm start
+npx dotenv -e .env.production -- npm start
 ```
 
 ### 📊 Tóm tắt: Khi nào cần khởi tạo Database?
@@ -129,8 +129,8 @@ npx dotenv -e .env.vercel -- npm start
 | Tình huống | Commands cần chạy | Ghi chú |
 |------------|-------------------|---------|
 | **Lần đầu setup Dev** | `npm run db:migrate:local` → `npm run db:seed:local` | Tạo PostgreSQL local database + tables + admin user |
-| **Lần đầu setup Production** | `npx dotenv -e .env.vercel -- npx prisma migrate deploy` → `npm run db:seed:vercel` | Tạo tables trong PostgreSQL + admin user |
-| **Có thay đổi schema** | Dev: `npm run db:migrate:local -- --name xyz`<br/>Prod: `npx dotenv -e .env.vercel -- npx prisma migrate deploy` | Cập nhật cấu trúc database |
+| **Lần đầu setup Production** | `npx dotenv -e .env.production -- npx prisma migrate deploy` → `npm run db:seed:vercel` | Tạo tables trong PostgreSQL + admin user |
+| **Có thay đổi schema** | Dev: `npm run db:migrate:local -- --name xyz`<br/>Prod: `npx dotenv -e .env.production -- npx prisma migrate deploy` | Cập nhật cấu trúc database |
 | **Reset database** | `npm run db:reset` (dev only) | ⚠️ XÓA toàn bộ data và tạo lại |
 | **Chỉ cần admin user mới** | `npm run db:seed` hoặc `npm run db:seed:vercel` | Có thể chạy nhiều lần (upsert) |
 
@@ -146,7 +146,7 @@ npx dotenv -e .env.vercel -- npm start
 
 Xem `ENV_SETUP_GUIDE.md` cho hướng dẫn chi tiết.
 
-Dev: copy `.env.local.example` → `.env.local` (dùng DB local). Prod: cấu hình trên Vercel hoặc `.env.vercel` khi test production build local.
+Dev: copy `.env.local.example` → `.env.local` (dùng DB local). Prod: cấu hình trên Vercel hoặc `.env.production` khi test production build local.
 
 Required variables:
 - `DATABASE_URL`: Database connection string
@@ -289,20 +289,6 @@ Tóm tắt:
 3. Create Vercel Postgres database
 4. Configure environment variables
 5. Deploy!
-
-## 🤝 Contributing
-
-Contributions welcome! Please:
-
-1. Fork repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License.
 
 ## 👏 Acknowledgments
 

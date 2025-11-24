@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { Clock, RefreshCw, Trash2, AlertTriangle } from 'lucide-react';
+import { Clock, RefreshCw, Trash2, AlertTriangle, Copy, Check } from 'lucide-react';
 
 interface GenerationLog {
     id: string;
@@ -37,6 +37,7 @@ export default function GenerationLogsPanel({
     const [totalLogs, setTotalLogs] = useState(initialLogs.length);
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+    const [copiedLogId, setCopiedLogId] = useState<string | null>(null);
     
     const logsPerPage = 5;
 
@@ -101,6 +102,29 @@ export default function GenerationLogsPanel({
             alert('Xóa thất bại!');
         } finally {
             setIsDeleting(false);
+        }
+    };
+
+    const copyLog = async (log: GenerationLog) => {
+        const logText = [
+            `=== Generation Log ===`,
+            `ID: ${log.id}`,
+            `Status: ${log.status}`,
+            `Started: ${format(new Date(log.startedAt), 'HH:mm:ss - dd/MM/yyyy', { locale: vi })}`,
+            log.completedAt ? `Completed: ${format(new Date(log.completedAt), 'HH:mm:ss - dd/MM/yyyy', { locale: vi })}` : 'Completed: N/A',
+            log.duration ? `Duration: ${(log.duration / 1000).toFixed(2)}s` : 'Duration: N/A',
+            `Articles Created: ${log.articlesCreated || 0}`,
+            log.errorMessage ? `\nError Message:\n${log.errorMessage}` : '',
+            log.errorDetails ? `\nError Details:\n${log.errorDetails}` : '',
+        ].filter(Boolean).join('\n');
+
+        try {
+            await navigator.clipboard.writeText(logText);
+            setCopiedLogId(log.id);
+            setTimeout(() => setCopiedLogId(null), 2000);
+        } catch (error) {
+            console.error('Failed to copy log:', error);
+            alert('Không thể copy log!');
         }
     };
 
@@ -304,7 +328,26 @@ export default function GenerationLogsPanel({
 
                                     {log.status === 'failed' && log.errorMessage && (
                                         <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                                            <p className="text-xs font-semibold text-red-800 dark:text-red-200 mb-2">❌ Thông báo lỗi:</p>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <p className="text-xs font-semibold text-red-800 dark:text-red-200">❌ Thông báo lỗi:</p>
+                                                <button
+                                                    onClick={() => copyLog(log)}
+                                                    className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                                                    title="Copy log"
+                                                >
+                                                    {copiedLogId === log.id ? (
+                                                        <>
+                                                            <Check className="w-3 h-3" />
+                                                            <span>Đã copy</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Copy className="w-3 h-3" />
+                                                            <span>Copy log</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
                                             <p className="text-xs text-red-700 dark:text-red-300 font-mono bg-red-100 dark:bg-red-950/50 p-2 rounded">
                                                 {log.errorMessage}
                                             </p>
@@ -323,9 +366,28 @@ export default function GenerationLogsPanel({
 
                                     {log.status === 'success' && (
                                         <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                                            <p className="text-xs text-green-700 dark:text-green-300">
-                                                ✅ Hoàn thành thành công! Đã tạo <strong>{log.articlesCreated}</strong> bài viết mới.
-                                            </p>
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-xs text-green-700 dark:text-green-300">
+                                                    ✅ Hoàn thành thành công! Đã tạo <strong>{log.articlesCreated}</strong> bài viết mới.
+                                                </p>
+                                                <button
+                                                    onClick={() => copyLog(log)}
+                                                    className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors"
+                                                    title="Copy log"
+                                                >
+                                                    {copiedLogId === log.id ? (
+                                                        <>
+                                                            <Check className="w-3 h-3" />
+                                                            <span>Đã copy</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Copy className="w-3 h-3" />
+                                                            <span>Copy log</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
                                 </div>

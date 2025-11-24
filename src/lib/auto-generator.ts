@@ -1,13 +1,7 @@
-import Parser from 'rss-parser';
 import { prisma } from './prisma';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getLatestCoinDeskArticles, scrapeCoinDeskArticle } from './scraper';
+import { getLatestCoinDeskArticles, scrapeCoinDeskArticle, ScrapedArticle, FeedArticleSummary } from './scraper';
 import { slugify } from './slugify';
-
-const parser = new Parser();
-const RSS_SOURCES = [
-    { name: 'CoinDesk', url: 'https://www.coindesk.com/arc/outboundfeeds/rss/' }
-];
 
 const FALLBACK_IMAGES = [
     "https://placehold.co/600x400?text=Thi+Truong+Crypto",
@@ -205,10 +199,10 @@ export async function generateAndSaveArticle() {
 
         console.log(`📰 Fetching latest articles from CoinDesk...`);
 
-        // Get more article URLs from CoinDesk homepage (increased from 10 to 50)
-        const articleUrls = await getLatestCoinDeskArticles(50);
+        // Fetch article metadata from RSS feeds (up to 50 entries)
+        const feedArticles = await getLatestCoinDeskArticles(50);
 
-        if (articleUrls.length === 0) {
+        if (feedArticles.length === 0) {
             throw new Error("Không tìm thấy bài viết nào");
         }
 
@@ -219,9 +213,9 @@ export async function generateAndSaveArticle() {
         const existingUrls = new Set(existingArticles.map(a => a.sourceUrl));
 
         // Filter out articles that already exist
-        const newUrls = articleUrls.filter(url => !existingUrls.has(url));
+        const newArticles = feedArticles.filter(article => !existingUrls.has(article.url));
 
-        if (newUrls.length === 0) {
+        if (newArticles.length === 0) {
             console.log('⚠️ All recent articles already exist in database');
             const latest = await prisma.article.findFirst({
                 orderBy: { createdAt: 'desc' }
@@ -229,15 +223,55 @@ export async function generateAndSaveArticle() {
             return latest!;
         }
 
-        console.log(`✅ Found ${newUrls.length} new articles to process`);
+        console.log(`✅ Found ${newArticles.length} new articles to process`);
 
-        // Pick a random new article
-        const randomUrl = newUrls[Math.floor(Math.random() * newUrls.length)];
+        const shuffledArticles = [...newArticles].sort(() => Math.random() - 0.5);
+        const fallbackCandidate = shuffledArticles.find(
+            (candidate) => (candidate.content && candidate.content.trim().length > 0) || (candidate.summary && candidate.summary.trim().length > 0)
+        );
+        let scrapedArticle: ScrapedArticle | null = null;
+        let chosenMeta: FeedArticleSummary | null = null;
 
-        // Scrape full article content
-        const scrapedArticle = await scrapeCoinDeskArticle(randomUrl);
+        for (const candidate of shuffledArticles) {
+            if (candidate.content && candidate.content.trim().length >= 120) {
+                scrapedArticle = {
+                    title: candidate.title,
+                    content: candidate.content,
+                    image: candidate.image || '',
+                    author: candidate.author || 'CoinDesk',
+                    publishedDate: candidate.publishedDate || new Date(),
+                    url: candidate.url
+                };
+                chosenMeta = candidate;
+                break;
+            }
 
-        if (!scrapedArticle) {
+            const scraped = await scrapeCoinDeskArticle(candidate.url);
+            if (scraped) {
+                if (!scraped.image && candidate.image) {
+                    scraped.image = candidate.image;
+                }
+                scrapedArticle = scraped;
+                chosenMeta = candidate;
+                break;
+            }
+        }
+
+        if (!scrapedArticle || !chosenMeta) {
+            if (fallbackCandidate) {
+                scrapedArticle = {
+                    title: fallbackCandidate.title,
+                    content: (fallbackCandidate.content || fallbackCandidate.summary || '').trim(),
+                    image: fallbackCandidate.image || '',
+                    author: fallbackCandidate.author || 'CoinDesk',
+                    publishedDate: fallbackCandidate.publishedDate || new Date(),
+                    url: fallbackCandidate.url
+                };
+                chosenMeta = fallbackCandidate;
+            }
+        }
+
+        if (!scrapedArticle || !scrapedArticle.content) {
             throw new Error("Không thể crawl nội dung bài viết");
         }
 

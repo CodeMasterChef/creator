@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Sparkles, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, Sparkles, CheckCircle, XCircle, Copy, Check } from "lucide-react";
 
 export default function GenerateTestButton() {
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
+    const [copied, setCopied] = useState(false);
 
     const handleGenerate = async () => {
         setLoading(true);
@@ -29,6 +30,26 @@ export default function GenerateTestButton() {
             setResult({ success: false, error: 'Network error' });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const copyLog = async () => {
+        if (!result) return;
+        
+        const logText = [
+            `=== Generation Error Log ===`,
+            `Error: ${result.error || 'Unknown error'}`,
+            result.errorDetails ? `\nError Details:\n${result.errorDetails}` : '',
+            result.stack ? `\nStack Trace:\n${result.stack}` : '',
+        ].filter(Boolean).join('\n');
+
+        try {
+            await navigator.clipboard.writeText(logText);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (error) {
+            console.error('Failed to copy log:', error);
+            alert('Không thể copy log!');
         }
     };
 
@@ -87,12 +108,41 @@ export default function GenerateTestButton() {
                         <div className="flex items-start gap-3">
                             <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                             <div className="flex-1">
-                                <div className="font-semibold text-red-800 dark:text-red-200 mb-1">
-                                    ❌ Có lỗi xảy ra
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="font-semibold text-red-800 dark:text-red-200">
+                                        ❌ Có lỗi xảy ra
+                                    </div>
+                                    <button
+                                        onClick={copyLog}
+                                        className="flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                                        title="Copy log"
+                                    >
+                                        {copied ? (
+                                            <>
+                                                <Check className="w-3 h-3" />
+                                                <span>Đã copy</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Copy className="w-3 h-3" />
+                                                <span>Copy log</span>
+                                            </>
+                                        )}
+                                    </button>
                                 </div>
                                 <div className="text-sm text-red-700 dark:text-red-300">
                                     {result.error}
                                 </div>
+                                {result.errorDetails && (
+                                    <details className="mt-2">
+                                        <summary className="text-xs text-red-600 dark:text-red-400 cursor-pointer hover:underline font-semibold">
+                                            📋 Chi tiết kỹ thuật
+                                        </summary>
+                                        <pre className="text-xs mt-2 p-3 bg-red-100 dark:bg-red-950/50 rounded overflow-x-auto text-red-700 dark:text-red-300 max-h-48 overflow-y-auto">
+                                            {result.errorDetails}
+                                        </pre>
+                                    </details>
+                                )}
                             </div>
                         </div>
                     )}

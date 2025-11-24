@@ -10,6 +10,16 @@ export interface ScrapedArticle {
     url: string;
 }
 
+export interface FeedArticleSummary {
+    url: string;
+    title: string;
+    summary: string;
+    content?: string;
+    image?: string;
+    author?: string;
+    publishedDate?: Date;
+}
+
 export async function scrapeCoinDeskArticle(url: string): Promise<ScrapedArticle | null> {
     try {
         console.log(`🔍 Scraping article: ${url}`);
@@ -100,36 +110,77 @@ export async function scrapeCoinDeskArticle(url: string): Promise<ScrapedArticle
     }
 }
 
-export async function getLatestCoinDeskArticles(limit: number = 10): Promise<string[]> {
-    try {
-        console.log('📰 Fetching latest articles from CoinDesk...');
+const YEAR_FILTER = '/2025/';
+const COINDESK_RSS_FEEDS = [
+    'https://www.coindesk.com/arc/outboundfeeds/rss?output=most-read',
+    'https://www.coindesk.com/arc/outboundfeeds/rss?output=top-news',
+    'https://www.coindesk.com/arc/outboundfeeds/rss?output=markets',
+    'https://www.coindesk.com/arc/outboundfeeds/rss?output=business',
+    'https://www.coindesk.com/arc/outboundfeeds/rss?output=tech',
+    'https://www.coindesk.com/arc/outboundfeeds/rss/'
+];
 
-        const response = await axios.get('https://www.coindesk.com/', {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
-            },
-            timeout: 10000
-        });
+function extractImageFromHtml(html: string): string | undefined {
+    if (!html) return undefined;
+    const $ = cheerio.load(html);
+    const src = $('img').first().attr('src');
+    return src && src.startsWith('http') ? src : undefined;
+}
 
-        const $ = cheerio.load(response.data);
-        const articleUrls: string[] = [];
+export async function getLatestCoinDeskArticles(limit: number = 10): Promise<FeedArticleSummary[]> {
+    const articleMap = new Map<string, FeedArticleSummary>();
 
-        // Find article links - adjust selectors based on CoinDesk's structure
-        $('a[href*="/markets/"], a[href*="/business/"], a[href*="/tech/"]').each((_, elem) => {
-            const href = $(elem).attr('href');
-            if (href && href.includes('/2025/') && !href.includes('#')) {
-                const fullUrl = href.startsWith('http') ? href : `https://www.coindesk.com${href}`;
-                if (!articleUrls.includes(fullUrl)) {
-                    articleUrls.push(fullUrl);
-                }
+    await Promise.all(
+        COINDESK_RSS_FEEDS.map(async (feedUrl) => {
+            try {
+                const response = await axios.get(feedUrl, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+                    },
+                    timeout: 10000
+                });
+
+                const $ = cheerio.load(response.data, { xmlMode: true });
+                $('item').each((_, elem) => {
+                    const href = $(elem).find('link').first().text().trim();
+                    if (href && href.includes(YEAR_FILTER)) {
+                        if (!articleMap.has(href)) {
+                            const title = $(elem).find('title').first().text().trim();
+                            const summary = $(elem).find('description').first().text().trim();
+                            const encodedContent = $(elem).find('content\\:encoded').first().text().trim();
+                            const author = $(elem).find('dc\\:creator').first().text().trim() ||
+                                $(elem).find('author').first().text().trim();
+                            const pubDate = $(elem).find('pubDate').first().text().trim();
+                            const mediaImage = $(elem).find('media\\:content').attr('url') ||
+                                $(elem).find('enclosure').attr('url') ||
+                                extractImageFromHtml(encodedContent || summary);
+
+                            articleMap.set(href, {
+                                url: href,
+                                title: title || 'CoinDesk Article',
+                                summary,
+                                content: encodedContent || summary,
+                                image: mediaImage,
+                                author: author || 'CoinDesk',
+                                publishedDate: pubDate ? new Date(pubDate) : undefined
+                            });
+                        }
+                    }
+                });
+
+                console.log(`✅ RSS feed ${feedUrl} returned ${articleMap.size} total URLs`);
+            } catch (error: any) {
+                console.error(`❌ Error fetching RSS feed ${feedUrl}:`, error.message);
             }
-        });
+        })
+    );
 
-        console.log(`✅ Found ${articleUrls.length} article URLs`);
-        return articleUrls.slice(0, limit);
-
-    } catch (error: any) {
-        console.error('❌ Error fetching article list:', error.message);
-        return [];
+    const articles = Array.from(articleMap.values());
+    if (articles.length === 0) {
+        console.warn('⚠️ No article URLs were found from CoinDesk RSS feeds');
+    } else if (articles.length < limit) {
+        console.log(`ℹ️ Only ${articles.length} unique articles collected; less than requested limit ${limit}`);
     }
+
+    return articles.slice(0, limit);
 }

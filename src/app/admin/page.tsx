@@ -15,6 +15,7 @@ import GenerationLogsPanel from "@/components/GenerationLogsPanel";
 import AutoGenerationToggle from "@/components/AutoGenerationToggle";
 import AdminTabView from "@/components/AdminTabView";
 import MediaLibrary from "@/components/MediaLibrary";
+import CreateArticleButton from "@/components/CreateArticleButton";
 
 async function handleSignOut() {
     "use server";
@@ -109,9 +110,6 @@ export default async function AdminDashboard() {
                         <div className="lg:col-span-2 space-y-3">
                             <AutoGenerationToggle initialEnabled={autoGenerationEnabled} variant="inline" />
                             <IntervalSettings currentIntervalMinutes={currentIntervalMinutes} variant="inline" />
-                            <div className="text-xs sm:text-sm text-gray-500 dark:text-slate-300">
-                                Quản lý bật/tắt, lịch tự động và tạo thủ công gọn trong một khu vực.
-                            </div>
                         </div>
                         <div className="rounded-lg shadow p-4 sm:p-5 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white flex flex-col gap-3">
                             <div className="flex items-start gap-3">
@@ -152,10 +150,13 @@ export default async function AdminDashboard() {
 
     const articlesContent = (
         <>
-            <div className="mb-8">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-4">
-                    Thống kê bài viết
-                </h2>
+            <div className="mb-8 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                        Thống kê bài viết
+                    </h2>
+                    <CreateArticleButton />
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
                     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-between mb-4">

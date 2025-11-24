@@ -159,7 +159,10 @@ export async function PATCH(request: Request) {
                     data: { image: updatedImage },
                 });
             })
-            .filter((promise): promise is Promise<unknown> => promise !== null);
+            .filter(
+                (promise): promise is ReturnType<typeof prisma.article.update> =>
+                    promise !== null
+            );
 
         await Promise.all(updatePromises);
 

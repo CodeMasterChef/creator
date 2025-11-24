@@ -43,9 +43,13 @@ export async function POST(request: Request) {
         });
     } catch (error) {
         console.error('Generate error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorStack = error instanceof Error ? error.stack : undefined;
+        
         return NextResponse.json({
             success: false,
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: errorMessage,
+            errorDetails: errorStack || undefined
         }, { status: 500 });
     }
 }
