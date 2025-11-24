@@ -6,7 +6,7 @@ services:
     container_name: cryptopulse-db
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres123
@@ -23,4 +23,3 @@ services:
 volumes:
   postgres_data:
     driver: local
-

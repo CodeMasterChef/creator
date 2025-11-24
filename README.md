@@ -34,7 +34,7 @@
 
 - **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript
-- **Database**: PostgreSQL (Production) / SQLite (Development)
+- **Database**: PostgreSQL (Production + Local Dev)
 - **ORM**: Prisma
 - **Authentication**: NextAuth.js v5
 - **AI**: Google Gemini AI
@@ -48,11 +48,11 @@
 
 - Node.js 20+
 - npm hoặc yarn
-- PostgreSQL (for production) hoặc SQLite (for development)
+- PostgreSQL (for production + local dev via docker-compose)
 
 ### 🔧 Development Setup (Local)
 
-**Môi trường:** SQLite database, file `.env` hoặc `.env.local`
+**Môi trường:** PostgreSQL local (docker-compose), file `.env.local`
 
 ```bash
 # 1. Clone repository
@@ -62,20 +62,23 @@ cd thu-vien-tien-so
 # 2. Install dependencies
 npm install
 
-# 3. Setup environment variables
+# 3. Start local Postgres
+docker-compose up -d postgres
+
+# 4. Setup environment variables
 cp .env.local.example .env.local
 # Edit .env.local với your credentials
 
-# 4. Generate Prisma Client
-npx prisma generate
+# 5. Generate Prisma Client
+npm run prisma:generate:local
 
-# 5. Run database migrations (tạo tables)
-npx prisma migrate dev
+# 6. Run database migrations (tạo tables)
+npm run db:migrate:local
 
-# 6. Create admin user (chỉ chạy 1 lần)
-npm run db:seed
+# 7. Create admin user (chỉ chạy 1 lần)
+npm run db:seed:local
 
-# 7. Start development server
+# 8. Start development server
 npm run dev
 ```
 
@@ -95,7 +98,7 @@ Mở [http://localhost:3000](http://localhost:3000) trong browser.
 npm run prisma:generate:vercel
 
 # 3. Deploy migrations (tạo tables trong PostgreSQL)
-npx dotenv-cli -e .env.vercel -- npx prisma migrate deploy
+npx dotenv -e .env.vercel -- npx prisma migrate deploy
 
 # 4. Seed database (tạo admin user - chỉ chạy 1 lần)
 npm run db:seed:vercel
@@ -108,31 +111,31 @@ npm run db:seed:vercel
 npx prisma migrate dev --name your_migration_name
 
 # 2. Deploy migration lên production
-npx dotenv-cli -e .env.vercel -- npx prisma migrate deploy
+npx dotenv -e .env.vercel -- npx prisma migrate deploy
 ```
 
 #### Test production build locally:
 
 ```bash
 # Build với production env
-npx dotenv-cli -e .env.vercel -- npm run build
+npx dotenv -e .env.vercel -- npm run build
 
 # Start production server
-npx dotenv-cli -e .env.vercel -- npm start
+npx dotenv -e .env.vercel -- npm start
 ```
 
 ### 📊 Tóm tắt: Khi nào cần khởi tạo Database?
 
 | Tình huống | Commands cần chạy | Ghi chú |
 |------------|-------------------|---------|
-| **Lần đầu setup Dev** | `npx prisma migrate dev` → `npm run db:seed` | Tạo SQLite database + tables + admin user |
-| **Lần đầu setup Production** | `npx dotenv-cli -e .env.vercel -- npx prisma migrate deploy` → `npm run db:seed:vercel` | Tạo tables trong PostgreSQL + admin user |
-| **Có thay đổi schema** | Dev: `npx prisma migrate dev --name xyz`<br/>Prod: `npx dotenv-cli -e .env.vercel -- npx prisma migrate deploy` | Cập nhật cấu trúc database |
+| **Lần đầu setup Dev** | `npm run db:migrate:local` → `npm run db:seed:local` | Tạo PostgreSQL local database + tables + admin user |
+| **Lần đầu setup Production** | `npx dotenv -e .env.vercel -- npx prisma migrate deploy` → `npm run db:seed:vercel` | Tạo tables trong PostgreSQL + admin user |
+| **Có thay đổi schema** | Dev: `npm run db:migrate:local -- --name xyz`<br/>Prod: `npx dotenv -e .env.vercel -- npx prisma migrate deploy` | Cập nhật cấu trúc database |
 | **Reset database** | `npm run db:reset` (dev only) | ⚠️ XÓA toàn bộ data và tạo lại |
 | **Chỉ cần admin user mới** | `npm run db:seed` hoặc `npm run db:seed:vercel` | Có thể chạy nhiều lần (upsert) |
 
 **⚠️ Lưu ý quan trọng:**
-- **Development**: Sử dụng SQLite (`file:./prisma/dev.db`), data lưu local
+- **Development**: Sử dụng PostgreSQL local (docker-compose) với `.env.local` tách biệt
 - **Production**: Sử dụng PostgreSQL (Vercel Postgres), data lưu trên cloud
 - **Seed script** có thể chạy nhiều lần an toàn (sử dụng `upsert`)
 - **Migration** phải chạy trước khi seed (tạo tables trước, insert data sau)
@@ -143,6 +146,8 @@ npx dotenv-cli -e .env.vercel -- npm start
 
 Xem `ENV_SETUP_GUIDE.md` cho hướng dẫn chi tiết.
 
+Dev: copy `.env.local.example` → `.env.local` (dùng DB local). Prod: cấu hình trên Vercel hoặc `.env.vercel` khi test production build local.
+
 Required variables:
 - `DATABASE_URL`: Database connection string
 - `AUTH_SECRET`: NextAuth secret key
@@ -152,10 +157,10 @@ Required variables:
 ### Database
 
 ```bash
-# Development (SQLite)
-DATABASE_URL="file:./prisma/dev.db"
+# Development (Local Postgres via docker-compose)
+DATABASE_URL="postgresql://postgres:postgres123@localhost:5433/cryptopulse"
 
-# Production (PostgreSQL)
+# Production (Vercel Postgres)
 DATABASE_URL="postgresql://user:password@host:5432/db"
 ```
 

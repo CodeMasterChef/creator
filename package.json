@@ -10,14 +10,17 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:local": "npx dotenv -e .env.local -- prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:local": "npx dotenv -e .env.local -- npm run db:seed",
     "db:reset": "prisma migrate reset",
     "generate": "tsx scripts/generate-batch.ts",
     "vercel-build": "prisma generate && prisma migrate deploy && next build",
     "restart": "./restart.sh",
     "kill:3000": "lsof -ti:3000 | xargs kill -9 || echo 'Port 3000 is free'",
-    "prisma:generate:vercel": "npx dotenv-cli -e .env.vercel -- npx prisma generate",
-    "db:seed:vercel": "dotenv-cli -e .env.vercel -- npm run db:seed"
+    "prisma:generate:vercel": "npx dotenv -e .env.vercel -- prisma generate",
+    "prisma:generate:local": "npx dotenv -e .env.local -- prisma generate",
+    "db:seed:vercel": "npx dotenv -e .env.vercel -- npm run db:seed"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
