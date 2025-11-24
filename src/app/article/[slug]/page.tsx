@@ -86,6 +86,49 @@ function normalizeArticleFonts(html: string): string {
     }
 }
 
+// Decode HTML entities in text (server-side safe)
+function decodeHTMLEntities(text: string): string {
+    if (!text) return '';
+    
+    // Remove HTML tags first
+    let decoded = text.replace(/<[^>]*>/g, '');
+    
+    // Decode common HTML entities (especially Vietnamese characters)
+    const entityMap: Record<string, string> = {
+        '&aacute;': 'á', '&Aacute;': 'Á',
+        '&agrave;': 'à', '&Agrave;': 'À',
+        '&acirc;': 'â', '&Acirc;': 'Â',
+        '&atilde;': 'ã', '&Atilde;': 'Ã',
+        '&eacute;': 'é', '&Eacute;': 'É',
+        '&egrave;': 'è', '&Egrave;': 'È',
+        '&ecirc;': 'ê', '&Ecirc;': 'Ê',
+        '&iacute;': 'í', '&Iacute;': 'Í',
+        '&igrave;': 'ì', '&Igrave;': 'Ì',
+        '&icirc;': 'î', '&Icirc;': 'Î',
+        '&oacute;': 'ó', '&Oacute;': 'Ó',
+        '&ograve;': 'ò', '&Ograve;': 'Ò',
+        '&ocirc;': 'ô', '&Ocirc;': 'Ô',
+        '&otilde;': 'õ', '&Otilde;': 'Õ',
+        '&uacute;': 'ú', '&Uacute;': 'Ú',
+        '&ugrave;': 'ù', '&Ugrave;': 'Ù',
+        '&ucirc;': 'û', '&Ucirc;': 'Û',
+        '&yacute;': 'ý', '&Yacute;': 'Ý',
+        '&ygrave;': 'ỳ', '&Ygrave;': 'Ỳ',
+        '&ycirc;': 'ŷ', '&Ycirc;': 'Ŷ',
+        '&nbsp;': ' ',
+        '&quot;': '"',
+        '&amp;': '&',
+        '&lt;': '<',
+        '&gt;': '>',
+    };
+    
+    for (const [entity, char] of Object.entries(entityMap)) {
+        decoded = decoded.replace(new RegExp(entity, 'g'), char);
+    }
+    
+    return decoded;
+}
+
 // Extract tags from article title and content
 function extractTags(title: string, content: string): string[] {
     const text = (title + ' ' + content).toLowerCase();
@@ -224,8 +267,14 @@ export default async function ArticlePage({ params, searchParams }: Props) {
                 </span>
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl dark:text-white" style={{ marginTop: '0.75rem', lineHeight: '1.1', fontWeight: 'bold' }}>{article.title}</h1>
                 {article.summary && (
-                    <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 mt-4 sm:mt-6 max-w-3xl mx-auto leading-relaxed" style={{ fontStyle: 'italic' }}>
-                        {article.summary}
+                    <p 
+                        className="text-base sm:text-lg text-gray-600 dark:text-gray-300 mt-4 sm:mt-6 max-w-3xl mx-auto leading-relaxed"
+                        style={{ 
+                            fontStyle: 'italic',
+                            fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
+                        }}
+                    >
+                        {decodeHTMLEntities(article.summary).replace(/<[^>]*>/g, '')}
                     </p>
                 )}
                 <div className="text-gray text-xs sm:text-sm" style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>

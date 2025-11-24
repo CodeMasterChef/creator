@@ -124,12 +124,9 @@ export default async function Home({ searchParams }: HomeProps) {
 
                     {/* Article Link */}
                     <Link href={generateArticleUrl(article.title, article.id)} className="group">
-                      <h3 className="font-serif text-base font-bold leading-tight mb-2 group-hover:text-primary transition-colors">
+                      <h3 className="font-serif text-base font-bold leading-tight group-hover:text-primary transition-colors">
                         {article.title}
                       </h3>
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {article.summary}
-                      </p>
                     </Link>
                   </div>
                 ))}

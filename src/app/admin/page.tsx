@@ -436,7 +436,14 @@ export default async function AdminDashboard() {
                     Quản lý các file đã upload và xóa những file không còn được sử dụng trong bài viết.
                 </p>
             </div>
-            <MediaLibrary articleImages={articles.map((article) => article.image || "")} />
+            <MediaLibrary
+                articles={articles.map((article) => ({
+                    id: article.id,
+                    title: article.title,
+                    slug: article.slug,
+                    image: article.image,
+                }))}
+            />
         </div>
     );
 
