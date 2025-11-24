@@ -247,32 +247,38 @@ export default async function AdminDashboard() {
                     </div>
                 )}
 
-                {/* Auto-Generation Toggle */}
-                <AutoGenerationToggle initialEnabled={autoGenerationEnabled} />
-
-                {/* Generate Article Card */}
-                <div className="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl shadow-lg p-6 sm:p-8 mb-8 mt-8 text-white">
-                    <div className="flex items-start gap-4 mb-4">
-                        <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
+                {/* Combined control card */}
+                <div className="mb-8 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-200 dark:border-slate-800 p-5 sm:p-6">
+                    <div className="grid lg:grid-cols-3 gap-4 sm:gap-6 items-start">
+                        <div className="lg:col-span-2 space-y-3">
+                            <AutoGenerationToggle initialEnabled={autoGenerationEnabled} variant="inline" />
+                            <IntervalSettings currentIntervalMinutes={currentIntervalMinutes} variant="inline" />
+                            <div className="text-xs sm:text-sm text-gray-500 dark:text-slate-300">
+                                Quản lý bật/tắt, lịch tự động và tạo thủ công gọn trong một khu vực.
+                            </div>
                         </div>
-                        <div className="flex-1">
-                            <h3 className="text-xl sm:text-2xl font-bold mb-2">
-                                📰 Tạo Bài Viết Mới (Thủ Công)
-                            </h3>
-                            <p className="text-sm sm:text-base text-blue-50 mb-4">
-                                Thu thập tin tức mới nhất từ CoinDesk và tự động dịch sang tiếng Việt. 
-                                Bài viết sẽ được xuất bản ngay lập tức.
-                            </p>
-                            <GenerateTestButton />
+                        <div className="rounded-lg shadow p-4 sm:p-5 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white flex flex-col gap-3">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-white/60 dark:bg-white/10 rounded-lg backdrop-blur-sm">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-base sm:text-lg font-bold">
+                                        Tạo Bài Viết Ngay
+                                    </h3>
+                                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 mt-1">
+                                        Lấy tin mới, dịch và xuất bản tức thì.
+                                    </p>
+                                </div>
+                            </div>
+                            <div>
+                                <GenerateTestButton />
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                {/* Interval Settings Component */}
-                <IntervalSettings currentIntervalMinutes={currentIntervalMinutes} />
 
                 {/* Generation Logs Panel with Auto-Refresh */}
                 <GenerationLogsPanel 

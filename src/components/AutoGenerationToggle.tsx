@@ -5,9 +5,10 @@ import { Power, PowerOff } from "lucide-react";
 
 interface AutoGenerationToggleProps {
     initialEnabled: boolean;
+    variant?: "card" | "inline";
 }
 
-export default function AutoGenerationToggle({ initialEnabled }: AutoGenerationToggleProps) {
+export default function AutoGenerationToggle({ initialEnabled, variant = "card" }: AutoGenerationToggleProps) {
     const [isEnabled, setIsEnabled] = useState(initialEnabled);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -45,9 +46,19 @@ export default function AutoGenerationToggle({ initialEnabled }: AutoGenerationT
         }
     };
 
+    const Wrapper = variant === "card" ? "div" : "div";
+    const wrapperClass =
+        variant === "card"
+            ? "bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6"
+            : "";
+    const warningClass =
+        variant === "card"
+            ? "mt-4"
+            : "mt-3";
+
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <Wrapper className={wrapperClass}>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                         {isEnabled ? (
@@ -116,13 +127,12 @@ export default function AutoGenerationToggle({ initialEnabled }: AutoGenerationT
             </div>
             
             {!isEnabled && (
-                <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-yellow-200 dark:border-yellow-800">
+                <div className={`${warningClass} p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-yellow-200 dark:border-yellow-800`}>
                     <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
                         ⚠️ <strong>Lưu ý:</strong> Khi tắt tự động cập nhật, bạn sẽ cần tạo bài viết thủ công bằng nút "Generate Article" ở trên.
                     </p>
                 </div>
             )}
-        </div>
+        </Wrapper>
     );
 }
-

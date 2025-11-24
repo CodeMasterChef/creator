@@ -123,6 +123,31 @@ export default async function ArticlePage({ params, searchParams }: Props) {
     const session = await auth();
     const isAdmin = !!session;
 
+    // Remove source link from content (always remove from content, we'll add it separately below)
+    let displayContent = article.content;
+    
+    // Remove any div containing source attribution
+    displayContent = displayContent.replace(
+        /<div[^>]*>[\s\S]*?(?:Bài viết này được tổng hợp|Đọc gốc tại|Đọc bài gốc)[\s\S]*?<\/div>/gi,
+        ''
+    );
+    
+    // Remove any small tags containing source attribution
+    displayContent = displayContent.replace(
+        /<small[^>]*>[\s\S]*?(?:Bài viết này được tổng hợp|Đọc gốc tại|Đọc bài gốc)[\s\S]*?<\/small>/gi,
+        ''
+    );
+    
+    // Remove any paragraph containing source attribution
+    displayContent = displayContent.replace(
+        /<p[^>]*>[\s\S]*?(?:Bài viết này được tổng hợp|Đọc gốc tại|Đọc bài gốc)[\s\S]*?<\/p>/gi,
+        ''
+    );
+    
+    // Clean up any remaining empty tags or whitespace
+    displayContent = displayContent.replace(/<div[^>]*>\s*<\/div>/gi, '');
+    displayContent = displayContent.replace(/<p[^>]*>\s*<\/p>/gi, '');
+
     // Extract tags from article
     const tags = extractTags(article.title, article.content);
 
@@ -192,8 +217,28 @@ export default async function ArticlePage({ params, searchParams }: Props) {
 
             <div
                 className="article-content text-base sm:text-lg leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(article.content) }}
+                dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(displayContent) }}
             />
+
+            {/* Source Attribution - Always visible, link only for admin */}
+            <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 italic">
+                    Bài viết này được tổng hợp và dịch từ các nguồn bên ngoài.
+                    {isAdmin && article.sourceUrl && (
+                        <>
+                            {' '}Đọc gốc tại:{' '}
+                            <a
+                                href={article.sourceUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:underline font-medium"
+                            >
+                                {article.source || 'Nguồn gốc'}
+                            </a>
+                        </>
+                    )}
+                </p>
+            </div>
 
             {/* Tags Section */}
             {tags.length > 0 && (

@@ -5,9 +5,10 @@ import { Clock, Save } from "lucide-react";
 
 interface IntervalSettingsProps {
   currentIntervalMinutes: number;
+  variant?: "inline";
 }
 
-export default function IntervalSettings({ currentIntervalMinutes }: IntervalSettingsProps) {
+export default function IntervalSettings({ currentIntervalMinutes, variant }: IntervalSettingsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -69,27 +70,32 @@ export default function IntervalSettings({ currentIntervalMinutes }: IntervalSet
     }
   };
 
+  const inline = variant === "inline";
+
   if (!isEditing) {
     return (
-      <div className="mb-8 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 sm:p-6">
-        <div className="flex items-start gap-3">
-          <div className="p-2 bg-yellow-100 dark:bg-yellow-800/30 rounded-lg">
-            <Clock className="w-5 h-5 text-primary" />
+      <div className={`${inline ? "" : "mb-8"} ${inline ? "" : "bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl"} p-0`}>
+        <div className={`${inline ? "" : "p-4 sm:p-6"} flex items-start gap-3`}>
+          <div className={`p-2 rounded-lg ${inline ? "bg-white/10 dark:bg-white/10" : "bg-yellow-100 dark:bg-yellow-800/30"}`}>
+            <Clock className={`w-5 h-5 ${inline ? "text-yellow-200" : "text-primary"}`} />
           </div>
           <div className="flex-1">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h3 className="text-sm sm:text-base font-semibold text-yellow-900 dark:text-yellow-100 mb-1">
+                <h3 className={`text-sm sm:text-base font-semibold ${inline ? "text-white" : "text-yellow-900 dark:text-yellow-100"} mb-1`}>
                   ⚡ Cập nhật tự động
                 </h3>
-                <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
-                  Hệ thống tự động thu thập tin tức từ CoinDesk mỗi <strong>{displayInterval()}</strong>.
-                  Bài viết được dịch và xuất bản tự động lên trang chủ.
+                <p className={`text-xs sm:text-sm ${inline ? "text-white/80" : "text-yellow-800 dark:text-yellow-200"}`}>
+                  Thu thập tin từ CoinDesk mỗi <strong>{displayInterval()}</strong> và tự động xuất bản.
                 </p>
               </div>
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex-shrink-0 px-3 py-1.5 text-xs sm:text-sm bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded-lg transition-colors"
+                className={`flex-shrink-0 px-3 py-1.5 text-xs sm:text-sm rounded-lg font-medium transition-colors ${
+                  inline
+                    ? "bg-white/15 hover:bg-white/25 text-white"
+                    : "bg-yellow-600 hover:bg-yellow-700 text-white"
+                }`}
               >
                 Thay đổi
               </button>
@@ -174,4 +180,3 @@ export default function IntervalSettings({ currentIntervalMinutes }: IntervalSet
     </div>
   );
 }
-

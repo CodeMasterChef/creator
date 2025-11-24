@@ -259,16 +259,11 @@ export async function generateAndSaveArticle() {
         const image = scrapedArticle.image || FALLBACK_IMAGES[Math.floor(Math.random() * FALLBACK_IMAGES.length)];
 
         // Create Vietnamese content with Gemini-generated text
+        // Note: Source link is now displayed separately in article page (only for admin)
         const content = `
             <article>
                 <div class="prose prose-lg max-w-none">
                     ${contentVi}
-                </div>
-
-                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 italic">
-                        <small>Bài viết này được tổng hợp và dịch từ các nguồn bên ngoài. Đọc gốc tại: <a href="${scrapedArticle.url}" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">CoinDesk</a>.</small>
-                    </p>
                 </div>
             </article>
         `;

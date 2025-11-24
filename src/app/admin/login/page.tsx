@@ -47,8 +47,8 @@ export default function LoginPage() {
                 <h1 style={{ marginBottom: '2rem', textAlign: 'center' }}>Đăng Nhập Admin</h1>
 
                 <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                    <div className="mb-6">
+                        <label htmlFor="email" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                             Email
                         </label>
                         <input
@@ -57,20 +57,12 @@ export default function LoginPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                borderRadius: '8px',
-                                border: '1px solid var(--glass-border)',
-                                background: 'var(--glass-bg)',
-                                color: 'var(--text-primary)',
-                                fontSize: '1rem'
-                            }}
+                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                     </div>
 
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                    <div className="mb-6">
+                        <label htmlFor="password" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
                             Mật khẩu
                         </label>
                         <input
@@ -79,15 +71,7 @@ export default function LoginPage() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '0.75rem',
-                                borderRadius: '8px',
-                                border: '1px solid var(--glass-border)',
-                                background: 'var(--glass-bg)',
-                                color: 'var(--text-primary)',
-                                fontSize: '1rem'
-                            }}
+                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                     </div>
 
@@ -107,8 +91,7 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="btn-primary"
-                        style={{ width: '100%' }}
+                        className="w-full px-6 py-3 bg-primary hover:bg-yellow-500 dark:hover:bg-yellow-400 text-gray-900 dark:text-gray-900 font-medium rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
                     >
                         {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
                     </button>
