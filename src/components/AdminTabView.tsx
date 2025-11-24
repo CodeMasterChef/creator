@@ -6,21 +6,25 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 interface AdminTabViewProps {
     settings: ReactNode;
     articles: ReactNode;
+    library: ReactNode;
 }
 
-type TabId = "settings" | "articles";
+type TabId = "settings" | "articles" | "library";
 
-export default function AdminTabView({ settings, articles }: AdminTabViewProps) {
+export default function AdminTabView({ settings, articles, library }: AdminTabViewProps) {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const router = useRouter();
     const tabs: Array<{ id: TabId; label: string; icon: string }> = [
         { id: "settings", label: "Cài đặt", icon: "⚙️" },
-        { id: "articles", label: "Bài viết", icon: "📰" }
+        { id: "articles", label: "Bài viết", icon: "📰" },
+        { id: "library", label: "Thư viện", icon: "🗂️" }
     ];
 
-    const getTabFromParam = (value: string | null): TabId =>
-        value === "articles" ? "articles" : "settings";
+    const getTabFromParam = (value: string | null): TabId => {
+        if (value === "articles" || value === "library") return value;
+        return "settings";
+    };
 
     const [activeTab, setActiveTab] = useState<TabId>(() =>
         getTabFromParam(searchParams.get("tab"))
@@ -70,6 +74,7 @@ export default function AdminTabView({ settings, articles }: AdminTabViewProps) 
             <div className="mt-6">
                 <div className={activeTab === "settings" ? "block" : "hidden"}>{settings}</div>
                 <div className={activeTab === "articles" ? "block" : "hidden"}>{articles}</div>
+                <div className={activeTab === "library" ? "block" : "hidden"}>{library}</div>
             </div>
         </div>
     );

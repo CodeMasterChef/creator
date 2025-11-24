@@ -14,6 +14,7 @@ import IntervalSettings from "@/components/IntervalSettings";
 import GenerationLogsPanel from "@/components/GenerationLogsPanel";
 import AutoGenerationToggle from "@/components/AutoGenerationToggle";
 import AdminTabView from "@/components/AdminTabView";
+import MediaLibrary from "@/components/MediaLibrary";
 
 async function handleSignOut() {
     "use server";
@@ -425,6 +426,20 @@ export default async function AdminDashboard() {
         </>
     );
 
+    const libraryContent = (
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    Thư viện ảnh
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Quản lý các file đã upload và xóa những file không còn được sử dụng trong bài viết.
+                </p>
+            </div>
+            <MediaLibrary articleImages={articles.map((article) => article.image || "")} />
+        </div>
+    );
+
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             <div className="max-w-7xl mx-auto">
@@ -448,7 +463,11 @@ export default async function AdminDashboard() {
                     </form>
                 </div>
 
-                <AdminTabView settings={settingsContent} articles={articlesContent} />
+                <AdminTabView
+                    settings={settingsContent}
+                    articles={articlesContent}
+                    library={libraryContent}
+                />
             </div>
         </div>
     );

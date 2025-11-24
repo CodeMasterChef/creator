@@ -136,3 +136,6 @@ export default function AutoGenerationToggle({ initialEnabled, variant = "card" 
         </Wrapper>
     );
 }
+
+
+
