@@ -16,8 +16,10 @@ interface FeaturedImagePickerProps {
   onChange: (url: string) => void;
 }
 
+type PickerTab = "url" | "upload" | "library";
+
 export default function FeaturedImagePicker({ value, onChange }: FeaturedImagePickerProps) {
-  const [activeTab, setActiveTab] = useState<"upload" | "library">("upload");
+  const [activeTab, setActiveTab] = useState<PickerTab>("url");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [files, setFiles] = useState<MediaFile[]>([]);
@@ -96,79 +98,71 @@ export default function FeaturedImagePicker({ value, onChange }: FeaturedImagePi
     );
   }, [files, searchTerm]);
 
+  const tabButtonClass = (tab: PickerTab) =>
+    `flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-colors ${
+      activeTab === tab
+        ? "bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow"
+        : "text-gray-600 dark:text-gray-300"
+    }`;
+
   return (
     <div className="space-y-4">
       <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-1 text-sm font-semibold">
-        <button
-          type="button"
-          onClick={() => setActiveTab("upload")}
-          className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-colors ${
-            activeTab === "upload"
-              ? "bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow"
-              : "text-gray-600 dark:text-gray-300"
-          }`}
-        >
+        <button type="button" onClick={() => setActiveTab("url")} className={tabButtonClass("url")}>
+          Nhập URL
+        </button>
+        <button type="button" onClick={() => setActiveTab("upload")} className={tabButtonClass("upload")}>
           <UploadCloud className="w-4 h-4" />
           Tải lên
         </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("library")}
-          className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-colors ${
-            activeTab === "library"
-              ? "bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow"
-              : "text-gray-600 dark:text-gray-300"
-          }`}
-        >
+        <button type="button" onClick={() => setActiveTab("library")} className={tabButtonClass("library")}>
           <Images className="w-4 h-4" />
           Thư viện
         </button>
       </div>
 
       <div className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 p-4 space-y-4">
-        {activeTab === "upload" ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                URL ảnh
-              </label>
-              <input
-                type="text"
-                inputMode="url"
-                value={value}
-                onChange={(e) => handleImageUrlChange(e.target.value)}
-                placeholder="https://example.com/image.jpg"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-              />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Sử dụng URL trực tiếp hoặc tải ảnh từ máy lên máy chủ.
+        {activeTab === "url" ? (
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+              URL ảnh
+            </label>
+            <input
+              type="text"
+              inputMode="url"
+              value={value}
+              onChange={(e) => handleImageUrlChange(e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Dán link ảnh bên thứ ba hoặc CDN. Chúng tôi sẽ sử dụng trực tiếp URL này.
+            </p>
+          </div>
+        ) : activeTab === "upload" ? (
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400">
+              Tải file từ máy
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleLocalImageUpload}
+              className="w-full text-sm text-gray-600 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/80 file:text-gray-900 hover:file:bg-primary cursor-pointer"
+              disabled={isUploading}
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Kích thước tối đa 5MB. Ảnh sẽ được lưu trong thư mục uploads.
+            </p>
+            {isUploading && (
+              <p className="mt-1 inline-flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Đang tải ảnh...
               </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
-                Hoặc tải file từ máy
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleLocalImageUpload}
-                className="w-full text-sm text-gray-600 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/80 file:text-gray-900 hover:file:bg-primary cursor-pointer"
-                disabled={isUploading}
-              />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Kích thước tối đa 5MB. Ảnh sẽ được lưu trong thư mục uploads.
-              </p>
-              {isUploading && (
-                <p className="mt-1 inline-flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Đang tải ảnh...
-                </p>
-              )}
-              {uploadError && (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{uploadError}</p>
-              )}
-            </div>
+            )}
+            {uploadError && (
+              <p className="mt-1 text-xs text-red-600 dark:text-red-400">{uploadError}</p>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
